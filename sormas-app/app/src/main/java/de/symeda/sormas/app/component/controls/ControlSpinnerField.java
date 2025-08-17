@@ -244,7 +244,7 @@ public class ControlSpinnerField extends ControlPropertyEditField<Object> {
 		initInput(str);
 	}
 
-	protected void initInput(Map<String, String> isIntegerFlag) {
+	protected void initInput(Map<String, String> optionsList) {
 		input = (Spinner) this.findViewById(R.id.spinner_input);
 		if (getImeOptions() == EditorInfo.IME_NULL) {
 			setImeOptions(EditorInfo.IME_ACTION_DONE);
@@ -298,7 +298,7 @@ public class ControlSpinnerField extends ControlPropertyEditField<Object> {
 //            }
 //        });
 
-		List<Item> objectList = convertOtpions(isIntegerFlag);
+		List<Item> objectList = convertOtpions(optionsList);
 
 		setSpinnerData(objectList, null);
 

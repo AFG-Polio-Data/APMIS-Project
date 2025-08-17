@@ -5,6 +5,7 @@ import javax.interceptor.InvocationContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.joda.time.ReadablePartial;
 
 import de.symeda.sormas.api.utils.DateHelper;
 
@@ -41,7 +42,8 @@ public class PerformanceLoggingInterceptor {
 		if (traceEnabled) {
 			logger.trace("Started: {} with parameters '{}'", getInvokedMethod(context), context.getParameters());
 		}
-
+		
+		//any problem on this line in furute? add joda time to classpath
 		long startTime = DateHelper.startTime();
 		try {
 			return context.proceed();

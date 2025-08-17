@@ -52,6 +52,7 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -757,6 +758,12 @@ public class StartupShutdownService {
 				logger.error("Could not UPDATE schema_version table. Missing user rights?");
 			}
 		}
+		
+		
+		Query seriesDataQuery = em.createNativeQuery("select count(*) schema_version");
+		
+		System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM" + seriesDataQuery.getResultList().toString());
+		
 	}
 
 	private void createImportTemplateFiles() {

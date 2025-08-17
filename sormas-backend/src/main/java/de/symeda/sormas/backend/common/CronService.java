@@ -14,14 +14,6 @@
  */
 package de.symeda.sormas.backend.common;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import javax.annotation.security.RunAs;
 import javax.ejb.EJB;
 import javax.ejb.Schedule;
@@ -30,24 +22,9 @@ import javax.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.symeda.sormas.api.feature.FeatureType;
-import de.symeda.sormas.api.importexport.ImportExportUtils;
-import de.symeda.sormas.api.task.TaskType;
 import de.symeda.sormas.api.user.UserRole;
 import de.symeda.sormas.api.utils.DateHelper;
 import de.symeda.sormas.backend.campaign.data.CampaignFormDataFacadeEjb.CampaignFormDataFacadeEjbLocal;
-import de.symeda.sormas.backend.campaign.data.DashboardRunnable;
-import de.symeda.sormas.backend.caze.CaseFacadeEjb.CaseFacadeEjbLocal;
-import de.symeda.sormas.backend.common.ConfigFacadeEjb.ConfigFacadeEjbLocal;
-import de.symeda.sormas.backend.contact.ContactFacadeEjb.ContactFacadeEjbLocal;
-import de.symeda.sormas.backend.document.DocumentFacadeEjb.DocumentFacadeEjbLocal;
-import de.symeda.sormas.backend.event.EventFacadeEjb.EventFacadeEjbLocal;
-import de.symeda.sormas.backend.feature.FeatureConfigurationFacadeEjb.FeatureConfigurationFacadeEjbLocal;
-import de.symeda.sormas.backend.immunization.ImmunizationFacadeEjb;
-import de.symeda.sormas.backend.labmessage.LabMessageFacadeEjb.LabMessageFacadeEjbLocal;
-import de.symeda.sormas.backend.report.WeeklyReportFacadeEjb.WeeklyReportFacadeEjbLocal;
-import de.symeda.sormas.backend.systemevent.SystemEventFacadeEjb.SystemEventFacadeEjbLocal;
-import de.symeda.sormas.backend.task.TaskFacadeEjb.TaskFacadeEjbLocal;
 
 @Singleton
 @RunAs(UserRole._SYSTEM)
@@ -89,8 +66,8 @@ public class CronService {
 
 	//check and update Analysis Table for Campaign Dashboard CampaignFormDataFacadeEjbLocal
 	@Schedule(hour = "*", minute = "*/15", second = "0", persistent = false)
-	public void calculateCaseCompletion() {
-		long timeStart = DateHelper.startTime();
+	public void checkAndUpdateAnalysis() {
+		long timeStart = System.currentTimeMillis();//DateHelper.startTime();
 		campaingDataFacade.checkLastAnalytics();
 
 		logger.debug("running analytics updates finished. {} proccessed, {} s", 0, DateHelper.durationSeconds(timeStart));

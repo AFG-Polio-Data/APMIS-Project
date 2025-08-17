@@ -62,6 +62,7 @@ import de.symeda.sormas.api.utils.YesNoUnknown;
 import de.symeda.sormas.app.R;
 import de.symeda.sormas.app.backend.campaign.form.CampaignFormMeta;
 import de.symeda.sormas.app.component.controls.ControlCheckBoxField;
+import de.symeda.sormas.app.component.controls.ControlCheckBoxGroupField;
 import de.symeda.sormas.app.component.controls.ControlDateField;
 import de.symeda.sormas.app.component.controls.ControlPhoneField;
 import de.symeda.sormas.app.component.controls.ControlPropertyField;
@@ -743,7 +744,7 @@ public class CampaignFormDataFragmentUtils {
             CampaignFormElement campaignFormElement,
             Context context,
             Map<String, String> userTranslations,
-            Map<String, String> isIntegerField) {
+            Map<String, String> optionsList) {
         return new ControlSpinnerField(context) {
 
             @Override
@@ -772,7 +773,7 @@ public class CampaignFormDataFragmentUtils {
                 initLabel();
                 initLabelAndValidationListeners();
                 setLiveValidationDisabled(true);
-                initInput(isIntegerField);
+                initInput(optionsList);
             }
         };
     }
@@ -820,10 +821,50 @@ public class CampaignFormDataFragmentUtils {
     }
 
 
+    public static ControlCheckBoxGroupField createControlCheckBoxField(
+            CampaignFormElement campaignFormElement,
+            Context context,
+            Map<String, String> userTranslations,
+            Map<String, String> optionValuesz){
+        return new ControlCheckBoxGroupField(context) {
+
+            @Override
+            protected String getPrefixDescription() {
+                return getUserLanguageCaption(userTranslations, campaignFormElement);
+            }
+
+            @Override
+            protected String getPrefixCaption() {
+                return getUserLanguageCaption(userTranslations, campaignFormElement);
+            }
+
+            @Override
+            public int getTextAlignment() {
+                return View.TEXT_ALIGNMENT_VIEW_START;
+            }
+
+            @Override
+            public int getGravity() {
+                return Gravity.CENTER_VERTICAL;
+            }
+
+            @Override
+            protected void inflateView(Context context, AttributeSet attrs, int defStyle) {
+                super.inflateView(context, attrs, defStyle);
+                initLabel();
+                initLabelAndValidationListeners();
+                setLiveValidationDisabled(true);
+                //required = true;
+
+                setOptions(optionValuesz);
+            }
+        };
+    }
+
     public static ControlCheckBoxField createControlCheckBoxField(
             CampaignFormElement campaignFormElement,
             Context context,
-            Map<String, String> userTranslations) {
+            Map<String, String> userTranslations){
         return new ControlCheckBoxField(context) {
 
             @Override

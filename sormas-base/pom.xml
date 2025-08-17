@@ -761,12 +761,12 @@
 				<!-- better compatibility to PostgreSQL than HSQLDB -->
 			</dependency>
 
-			<dependency>
+			<!--dependency>
 				<groupId>info.novatec</groupId>
 				<artifactId>bean-test</artifactId>
 				<version>0.2.Final</version>
 				<scope>test</scope>
-			</dependency>
+			</dependency-->
 
 			<dependency>
 				<groupId>junit</groupId>
@@ -1180,11 +1180,11 @@
 				<enabled>false</enabled>
 			</releases>
 		</repository>
-		<repository>
+		<!--repository>
 			<id>Novatec</id>
 			<name>Novatec Repository</name>
 			<url>https://repository.novatec-gmbh.de/content/repositories/novatec</url>
-		</repository>
+		</repository-->
 		<repository>
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
@@ -1333,14 +1333,14 @@
 	</profiles>
 
 	<modules>
-		<module>../sormas-widgetset</module>
+		<!--module>../sormas-widgetset</module-->
 		<module>../sormas-api</module>
 		<module>../sormas-backend</module>
 		<module>../sormas-ear</module>
 		<module>../sormas-rest</module>
-		<module>../sormas-ui</module>
+		<!--module>../sormas-ui</module-->
 		<module>./dependencies/serverlibs.pom</module>
-		<module>../sormas-cargoserver</module>
+		<!--module>../sormas-cargoserver</module-->
 		<module>../apmis-flow</module>
 	</modules>
 </project>

@@ -118,7 +118,7 @@
          	<!-- don't validate on release, otherwise the automatic db update won't work
          	<property name="hibernate.hbm2ddl.auto" value="validate"/>
          	 -->
-         	       	</properties>
+         </properties>
 
 	</persistence-unit>
 	

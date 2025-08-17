@@ -78,10 +78,64 @@ public class ControlCheckBoxGroupField extends ControlPropertyEditField<Object> 
 		}
 	}
 
+	public void setOptions(Map<String, String> optionsValue) {
+		int lastIndex = optionsValue.size() - 1;
+		int index = 0;
+
+		checkBoxesFrame = this.findViewById(R.id.checkboxes_frame);
+		if (checkBoxes == null) {
+			checkBoxes = new HashMap<>();
+		}
+		for (Map.Entry<String, String> entry : optionsValue.entrySet()) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+			addItem(key, index, value);
+			index++;
+		}
+	}
+
+	private void addItem(String index, int lastIndex, String item) {
+		final CheckBox checkBox = createCheckBox(index, lastIndex, item);
+		checkBoxesFrame.addView(checkBox);
+		checkBoxes.put(item, checkBox);
+	}
+
 	private void addItem(int index, int lastIndex, Item item) {
 		final CheckBox checkBox = createCheckBox(index, lastIndex, item);
 		checkBoxesFrame.addView(checkBox);
 		checkBoxes.put(item.getValue(), checkBox);
+	}
+
+	private CheckBox createCheckBox(String key, int lastIndex, String item) {
+		CheckBox checkBox = new CheckBox(new ContextThemeWrapper(getContext(), R.style.ControlCheckboxStyle));
+		int viewId = View.generateViewId();
+		checkBox.setId(viewId);
+		checkBox.setTag(key);
+		checkBox.setText(item);
+		checkBox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+		checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+
+			System.out.println(buttonView.getTag()+">>>>>>>>>>>>>>>"+checkBoxes.values()+">>>>>>>>>>>>>>>>>>>" + isChecked);
+			if (isChecked) {
+				// Uncheck all other checkboxes
+				uncheckAll();
+				for (CheckBox cb : checkBoxes.values()) {
+
+					System.out.println(cb.getTag()+">>>>>>>>>>");
+
+
+					if (cb != buttonView) {
+						cb.setChecked(false);
+					}
+				}
+			}
+
+
+			if (inverseBindingListener != null) {
+				inverseBindingListener.onChange();
+			}
+		});
+		return checkBox;
 	}
 
 	private CheckBox createCheckBox(int index, int lastIndex, Item item) {

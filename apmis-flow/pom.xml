@@ -45,12 +45,13 @@
 			<url>https://maven.vaadin.com/vaadin-addons</url>
 		</repository>
 		<repository>
-			<id>Vaadin Directory</id>
-			<url>https://maven.vaadin.com/vaadin-addons</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
+        <id>sonatype-snapshots</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+		
 	</repositories>
 
 	<pluginRepositories>
@@ -182,12 +183,12 @@
 			<artifactId>slf4j-simple</artifactId>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>3.1.0</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>com.vaadin</groupId>
@@ -195,11 +196,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
 			<version>5.6</version>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>org.springframework</groupId>
