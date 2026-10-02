@@ -729,13 +729,13 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			notification.add(layout);
 			notification.open();
 			return;
-		} else {
-			BulkUsersEditDataDialog bulkUsersEditDataDialog = new BulkUsersEditDataDialog(selectedItems, userDto,
-					filterDataProvider);
-			bulkUsersEditDataDialog.open();
-
 		}
 
+		// Bulk user editing is not implemented. This method used to instantiate
+		// BulkUsersEditDataDialog, a class referenced in 9568e56b04 but never committed to
+		// the repository, which meant apmis-flow could not compile from a clean checkout.
+		// The guard clause above is kept so an empty selection still reports an error;
+		// a non-empty selection currently does nothing. Tracked in Iyanuu/APMIS-Project#12.
 	}
 
 	private void configureGridMultiSelect() {

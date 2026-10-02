@@ -24,35 +24,32 @@ jobs:
         # The token is only needed for privileged actions from within the repo, so no need
         # to make it available on 3rd party PRs
         if: ${{ fromJSON(env.PRIVILEGED_RUN) }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          token: ${{ secrets.SORMAS_VITAGROUP_TOKEN }}
+          token: ${{ secrets.SORMAS_VITAGROUP_TOKEN || github.token }}
 
       - name: Checkout repository (without token)
         # Check if PR results from a fork: if yes, we cannot access the token.
         # The token is only needed for privileged actions from within the repo, so no need
         # to make it available on 3rd party PRs
         if: ${{ !fromJSON(env.PRIVILEGED_RUN) }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA }}
         uses: actions/setup-java@v5
         with:
-            distribution: zulu
-            java-version: '17'
-            
-      - name: Display Java version
-        run: java -version
-
-      - name: Display Maven version
-        run: mvn -version
+          java-version: ${{ env.JAVA }}
+          # setup-java v2+ requires an explicit distribution. Zulu matches the
+          # JDK recommended in the project's development setup docs and is what
+          # setup-java@v1 installed by default, so the toolchain is unchanged.
+          distribution: 'zulu'
 
       - name: Cache Maven packages
         # Check if PR results from the repository: if yes, it is safe to cache dependencies.
         # This is to keep us safe from cache poisoning through 3rd party PRs.
         if: ${{ fromJSON(env.PRIVILEGED_RUN) }}
         # FIXME(@JonasCir) #3733 remove '**/*.pom' once serverlib pom is renamed
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.m2
           key: ${{ runner.os }}-java-${{ env.JAVA }}-m2-${{ hashFiles('**/pom.xml', '**/*.pom') }}

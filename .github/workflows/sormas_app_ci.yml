@@ -1,0 +1,153 @@
+---
+# Builds the Android app and runs its JVM unit tests.
+#
+# The emulator tier (./gradlew connectedAndroidTest) is deliberately NOT included yet.
+# Instrumented tests need KVM, a cached AVD snapshot and several minutes of emulator
+# boot time, and they are the reason the equivalent upstream workflow ended up
+# triggering on workflow_dispatch only. This workflow keeps to the tier that runs fast
+# and deterministically, so it can gate every relevant pull request. Adding
+# connectedAndroidTest is a sensible follow-up once the existing instrumented tests
+# under sormas-app/app/src/androidTest are confirmed to compile against APMIS.
+
+name: Android CI
+
+env:
+  # sormas-api compiles with <release>17</release> and sormas-app sets
+  # sourceCompatibility/targetCompatibility to VERSION_17, so the JDK here has to
+  # be 17 as well: this workflow installs sormas-api with Maven before Gradle runs,
+  # and a JDK 11 toolchain fails that step with "release version 17 not supported".
+  JAVA: 17
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [development, master]
+    paths:
+      - 'sormas-app/**'
+      - 'sormas-api/**'
+      - '.github/workflows/sormas_app_ci.yml'
+  pull_request:
+    branches: [development]
+    paths:
+      - 'sormas-app/**'
+      - 'sormas-api/**'
+      - '.github/workflows/sormas_app_ci.yml'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  test:
+    name: android build and unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK ${{ env.JAVA }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA }}
+          distribution: 'zulu'
+
+      - name: Cache Maven packages
+        # GitHub scopes caches per branch and gives fork pull requests their own
+        # write scope with read-only access to the base, so this cannot be poisoned
+        # from a third-party pull request.
+        uses: actions/cache@v6
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-java-${{ env.JAVA }}-m2-${{ hashFiles('**/pom.xml', '**/*.pom') }}
+          restore-keys: ${{ runner.os }}-java-${{ env.JAVA }}-m2
+
+      - name: Install sormas-api into the local Maven repository
+        # The Android build resolves de.symeda.sormas:sormas-api from mavenLocal(),
+        # so the shared API module has to be built by Maven before Gradle runs.
+        working-directory: ./sormas-base
+        run: mvn install -pl :sormas-api -am -DskipTests=true -B -ntp
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sormas-app/**/*.gradle', 'sormas-app/**/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Build debug APK and run unit tests
+        # Scoped to the debug variant on purpose. `:app:test` is an aggregate task that
+        # runs the unit tests of every variant, which pulls the release variant into the
+        # build, and the committed app/google-services.json only declares a client for
+        # de.symeda.sormas.app.apmis.debug. A release build therefore fails from a clean
+        # checkout with "No matching client found for package name". Release Firebase
+        # configuration is not in the repository, so CI can only meaningfully verify debug.
+        working-directory: ./sormas-app
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:assembleDebug :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Publish unit test summary
+        # GitHub does not render JUnit XML natively, so without this the run page shows
+        # only a green tick and gives no indication of how many tests actually ran.
+        if: always()
+        working-directory: ./sormas-app
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import glob, xml.etree.ElementTree as ET
+
+          files = sorted(glob.glob("app/build/test-results/testDebugUnitTest/TEST-*.xml"))
+          rows = []
+          tests = failures = errors = skipped = 0
+          for path in files:
+              suite = ET.parse(path).getroot()
+              n = int(suite.get("tests", 0))
+              f = int(suite.get("failures", 0))
+              e = int(suite.get("errors", 0))
+              s = int(suite.get("skipped", 0))
+              tests += n; failures += f; errors += e; skipped += s
+              rows.append((suite.get("name", path), n, f, e, s))
+
+          print("### Android unit tests\n")
+          if not files:
+              print("No test results were produced.")
+          else:
+              status = "all passing" if failures == 0 and errors == 0 else "FAILING"
+              print(f"**{tests} tests across {len(rows)} classes - {status}**")
+              print(f"({failures} failures, {errors} errors, {skipped} skipped)\n")
+              print("| Test class | Tests | Failures | Errors | Skipped |")
+              print("|---|---:|---:|---:|---:|")
+              for name, n, f, e, s in rows:
+                  print(f"| `{name}` | {n} | {f} | {e} | {s} |")
+          PY
+
+      - name: Upload unit test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-unit-test-report
+          path: |
+            sormas-app/app/build/reports/tests/
+            sormas-app/app/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Run mobsfscan
+        # Static security analysis for the mobile codebase. Advisory only: it must not
+        # block the build gate, so failures here are tolerated.
+        id: mobsfscan
+        continue-on-error: true
+        uses: MobSF/mobsfscan@main
+        with:
+          args: ". --sarif --output mobsf-results.sarif || true"
+
+      - name: Upload mobsfscan report
+        # Tolerated as well, since this needs code scanning to be enabled on the repository.
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: mobsf-results.sarif
+          # Needed because CodeQL may also upload results, and they clash otherwise.
+          category: code-scanning/mobsfscan
