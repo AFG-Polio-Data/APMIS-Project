@@ -134,3 +134,4 @@ Please adhere to the following principles when submitting pull requests:
 4. Try to not use force-push when updating an existing pull request (e.g. after changes have been requested or because you need to resolve merge conflicts).
 5. Ideally, your pull request should pass the checks done by the automatic CI pipeline before it gets reviewed. If that's not the case, please make sure that your branch is up-to-date with the current development branch. If the checks also fail for the development branch, you're not required to do anything.
 In any other case, please fix the issues (most likely failed unit tests) before requesting another review.
+6. The `Secret Scanning` check reports committed secrets without blocking the pull request. If it flags a finding in your changes, follow the triage steps in [SECRET_SCANNING.md](SECRET_SCANNING.md).
