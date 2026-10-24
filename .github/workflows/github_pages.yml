@@ -3,12 +3,17 @@ on:
   push:
     branches:
       - development
+  # To deploy again by hand, or to test this workflow from another branch.
+  workflow_dispatch:
 
 jobs:
   build:
     name: Deploy page
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # The deploy step pushes the built site to the gh-pages branch.
+    permissions:
+      contents: write
     steps:
       - name: Checkout development
         uses: actions/checkout@v7
@@ -21,16 +26,11 @@ jobs:
           mkdir docs/sormas-rest/
           cp sormas-rest/README.md docs/sormas-rest/
 
-          mkdir docs/sormas-cargoserver/
-          cp sormas-cargoserver/README.md docs/sormas-cargoserver/
-
-          mkdir docs/sormas-keycloak-service-provider/
-          cp sormas-keycloak-service-provider/README.md docs/sormas-keycloak-service-provider/
-
           mkdir -p docs/sormas-base/doc/
           cp sormas-base/doc/keycloak.md docs/sormas-base/doc/
 
       - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
+        # master on 19 Jul 2024. A fixed commit, because this step gets a token that can push.
+        uses: mhausenblas/mkdocs-deploy-gh-pages@a31c6b13a80e4a4fbb525eeb7a2a78253bb15fa5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
