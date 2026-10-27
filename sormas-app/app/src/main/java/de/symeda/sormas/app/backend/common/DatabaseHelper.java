@@ -198,7 +198,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	// any time you make changes to your database objects, you may have to increase the database version
 
 
-	public static final int DATABASE_VERSION = 360;
+	public static final int DATABASE_VERSION = 361;
 
 	private static DatabaseHelper instance = null;
 
@@ -3522,6 +3522,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 					getDao(CampaignFormMeta.class).executeRaw(
 							"ALTER TABLE campaignFormMeta DROP COLUMN districtentry"
 					);
+
+				case 360:
+
+					currentVersion = 360;
+					getDao(CampaignFormData.class).executeRaw("ALTER TABLE campaignformdata add column isvalidated boolean default false;");
+
 
 					break;
 
