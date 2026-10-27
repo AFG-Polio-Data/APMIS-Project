@@ -59,6 +59,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	public static final String ISVERIFIED = "isverified";
 	public static final String ISPUBLISHED = "ispublished";
+	public static final String ISVALIDATED = "isvalidated";
+
 
 	public static final String SOURCE = "source";
 	public static final String CREATED_BY = "creatingUser";
@@ -102,6 +104,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	private boolean isverified;
 	private boolean ispublished;
+	private boolean isvalidated;
+
 
 	private String source;
 	private String creatingUser;
@@ -169,6 +173,33 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 			Long rcode, String region, Long pcode, String district, Long dcode, String community, Integer clusternumber,
 			Long ccode, Date formDate, String formType, String source, String creatingUser, boolean isverified,
 			boolean ispublished, Long recordversion, Date changeDate) {
+		this.uuid = uuid;
+		this.campaign = campaign;
+		this.form = form;
+		this.formValues = (List<CampaignFormDataEntry>) formValues;
+		this.area = area;
+		this.rcode = rcode;
+		this.region = region;
+		this.pcode = pcode;
+		this.district = district;
+		this.dcode = dcode;
+		this.community = community;
+		this.clusternumber = clusternumber;
+		this.ccode = ccode;
+		this.formDate = formDate;		
+		this.formType = formType;
+		this.source = source;
+		this.creatingUser = creatingUser;
+		this.isverified = isverified;
+		this.ispublished = ispublished;
+		this.recordversion = recordversion;
+		this.changeDate = changeDate;
+	}
+	
+	public CampaignFormDataIndexDto(String uuid, String campaign, String form, Object formValues, String area,
+			Long rcode, String region, Long pcode, String district, Long dcode, String community, Integer clusternumber,
+			Long ccode, Date formDate, String formType, String source, String creatingUser, boolean isverified,
+			boolean ispublished, boolean isvalidated, Long recordversion, Date changeDate) {
 		this.uuid = uuid;
 		this.campaign = campaign;
 		this.form = form;
@@ -699,6 +730,14 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	public void setRecordversion(Long recordversion) {
 		this.recordversion = recordversion;
+	}
+	
+	public boolean isIsvalidated() {
+		return isvalidated;
+	}
+
+	public void setIsvalidated(boolean isvalidated) {
+		this.isvalidated = isvalidated;
 	}
 
 

@@ -317,25 +317,6 @@ public class CampaignFormDataListActivity extends PagedBaseListActivity<Campaign
         dialog.show();
     }
 
-
-// Usage example:
-/*
-showCustomDialog(
-    "Error",
-    "Something went wrong",
-    "Retry",
-    "Cancel",
-    () -> {
-        // Add retry logic here
-        retryOperation();
-    }
-);
-*/
-
-// Usage example:
-// showErrorDialog("An error occurred while processing your request");
-
-
     @Override
     public boolean isEntryCreateAllowed() {
         return model.getCriteria().getCampaign() != null && ConfigProvider.hasUserRight(UserRight.CAMPAIGN_FORM_DATA_EDIT);

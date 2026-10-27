@@ -1,6 +1,5 @@
 package com.cinoteck.application.views.campaigndata;
 
-
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -173,8 +172,8 @@ public class CampaignDataView extends VerticalLayout
 	Anchor anchor = new Anchor("", I18nProperties.getCaption(Captions.export));
 	Anchor transposdeDataAnchor = new Anchor("", "Export Transposed Data");
 	Anchor transposdeDataDictionaryAnchor = new Anchor("", "Export Transposed Data Guide");
-	
-	private List<PopulationDataDto> popDto =  new ArrayList<PopulationDataDto>();
+
+	private List<PopulationDataDto> popDto = new ArrayList<PopulationDataDto>();
 
 	CampaignFormDataCriteria transposedDataCriteriaListener = new CampaignFormDataCriteria();
 
@@ -199,8 +198,8 @@ public class CampaignDataView extends VerticalLayout
 
 	NumberFormat arabicFormat = NumberFormat.getInstance();
 
-	Column<CampaignFormDataIndexDto> provinceNameColumn, pCodeColumn, districtNameColumn, dCodeColumn, clusterNumberColumn, ccodeColumn, formNameColumn, clusterNameColumn,
-			publishedColumn, verifiedColumn;
+	Column<CampaignFormDataIndexDto> provinceNameColumn, pCodeColumn, districtNameColumn, dCodeColumn,
+			clusterNumberColumn, ccodeColumn, formNameColumn, clusterNameColumn, publishedColumn, verifiedColumn;
 
 	ComboBox<CampaignFormMetaReferenceDto> newForm = new ComboBox<>();
 	ComboBox<CampaignFormMetaReferenceDto> importFormData = new ComboBox<>();
@@ -210,8 +209,6 @@ public class CampaignDataView extends VerticalLayout
 
 	GridMultiSelectionModel<CampaignFormDataIndexDto> selectionModel;
 	private Set<CampaignFormDataIndexDto> selectedItems = new HashSet<>();
-	
-	
 
 	// Counters for tracking creation
 	private int transposdeDataAnchorCreationCount = 0;
@@ -296,24 +293,21 @@ public class CampaignDataView extends VerticalLayout
 
 		Button exportButton = new Button(I18nProperties.getCaption(Captions.export));
 		exportButton.setIcon(new Icon(VaadinIcon.UPLOAD));
-		
+
 		Button exportImagesButton = new Button("Export with Images (ZIP)");
 		exportImagesButton.setIcon(new Icon(VaadinIcon.DOWNLOAD));
 
 		exportTransposedDataButton.setIcon(new Icon(VaadinIcon.UPLOAD));
 //		exporttransposeDataDictionary.setIcon(new Icon(VaadinIcon.DOWNLOAD));
-		
-
-		
 
 		exportButton.addClickListener(e -> {
-			
+
 			if (checkIfActiveFormContainsImageField(campaignFormCombo.getValue().getUuid())) {
 				anchor.setHref(createZipExportResource());
 				anchor.getElement().callJsFunction("click");
 
-			}else {
-			
+			} else {
+
 				anchor.getElement().callJsFunction("click");
 
 			}
@@ -450,13 +444,13 @@ public class CampaignDataView extends VerticalLayout
 
 				// If user has multiple districts
 				if (userProvider.getUser().getDistricts() != null && !userProvider.getUser().getDistricts().isEmpty()) {
-					
-					System.out.println(userProvider.getUser().getDistricts() +  "districts11114444488888888888888888888888888888888userDistrict" );
 
+					System.out.println(userProvider.getUser().getDistricts()
+							+ "districts11114444488888888888888888888888888888888userDistrict");
 
 					userDistricts = userProvider.getUser().getDistricts().stream().filter(districts::contains)
 							.collect(Collectors.toList());
-					
+
 					districtCombo.setItems(userDistricts);
 
 				}
@@ -465,11 +459,10 @@ public class CampaignDataView extends VerticalLayout
 
 					DistrictReferenceDto userDistrict = userProvider.getUser().getDistrict();
 
-
 					if (districts.contains(userDistrict)) {
 						userDistricts.add(userDistrict);
 					}
-				districtCombo.setItems(userDistricts);
+					districtCombo.setItems(userDistricts);
 
 				}
 				// If user does not have district
@@ -558,7 +551,7 @@ public class CampaignDataView extends VerticalLayout
 
 						userDistricts = userProvider.getUser().getDistricts().stream().filter(districts::contains)
 								.collect(Collectors.toList());
-						
+
 						districtCombo.setItems(userDistricts);
 
 					}
@@ -570,15 +563,13 @@ public class CampaignDataView extends VerticalLayout
 						if (districts.contains(userDistrict)) {
 							userDistricts.add(userDistrict);
 						}
-						
+
 						districtCombo.setItems(districts);
 
-					}
-					else {
+					} else {
 						districtCombo.setItems(userDistricts);
 
 					}
-
 
 					System.out.println("666688888888888888888888888888888888");
 
@@ -632,7 +623,7 @@ public class CampaignDataView extends VerticalLayout
 
 						userDistricts = userProvider.getUser().getDistricts().stream().filter(districts::contains)
 								.collect(Collectors.toList());
-						
+
 						districtCombo.setItems(userDistricts);
 
 					}
@@ -644,7 +635,7 @@ public class CampaignDataView extends VerticalLayout
 						if (districts.contains(userDistrict)) {
 							userDistricts.add(userDistrict);
 						}
-						
+
 						districtCombo.setItems(userDistricts);
 
 					}
@@ -655,7 +646,6 @@ public class CampaignDataView extends VerticalLayout
 						districtCombo.setItems(districts);
 
 					}
-					
 
 //					districtCombo.setItems(userDistricts);
 //					districtCombo.setItems(districts);
@@ -691,12 +681,18 @@ public class CampaignDataView extends VerticalLayout
 
 		final MenuItem publishDataBulkItem = subMenu.addItem(I18nProperties.getCaption(Captions.actionPublishData),
 				e -> handleDataPublishingAction());
-		
+
+		final MenuItem validateDataBulkItem = subMenu.addItem(I18nProperties.getCaption(Captions.actionPublishData),
+				e -> handleDataValidateAction());
+
 		final MenuItem unVerifyDataBulkItem = subMenu.addItem(I18nProperties.getCaption("Unverify"),
 				e -> handleDataUnVerificationAction());
 
 		final MenuItem unPublishDataBulkItem = subMenu.addItem(I18nProperties.getCaption(Captions.actionUnpublish),
 				e -> handleDataUnPublishingAction());
+
+		final MenuItem unValidateDataBulkItem = subMenu.addItem(I18nProperties.getCaption(Captions.actionUnpublish),
+				e -> handleDataUnValidateAction());
 
 		if (userProvider.hasUserRight(UserRight.PERFORM_BULK_OPERATIONS)) {
 			enterBulkEdit = new Button(I18nProperties.getCaption(Captions.actionEnterBulkEditMode));
@@ -723,7 +719,6 @@ public class CampaignDataView extends VerticalLayout
 				publishDataBulkItem.setVisible(false);
 				unVerifyDataBulkItem.setVisible(false);
 				unPublishDataBulkItem.setVisible(false);
-
 
 			}
 
@@ -791,7 +786,6 @@ public class CampaignDataView extends VerticalLayout
 
 		campaignz.setItems(allCampaigns);
 		campaignz.setValue(lastStarted);
-
 
 		campaignPhase.setItemLabelGenerator(this::getLabelForEnum);
 		if (userProvider.getUser().getUsertype() == UserType.EOC_USER) {
@@ -981,7 +975,7 @@ public class CampaignDataView extends VerticalLayout
 					generateTransposeDataFunctions(actionButtonlayout, campaignFormCombo.getValue().toString(),
 							criteria);
 				}
-				
+
 				checkIfActiveFormContainsImageField(campaignFormCombo.getValue().getUuid());
 			} else {
 				importanceSwitcher.clear();
@@ -1227,25 +1221,29 @@ public class CampaignDataView extends VerticalLayout
 										.getCampaignFormMetaByUuid(e.getValue().getUuid());
 
 								CampaignFormMetaGeographyLevel formGeographyLevel = formDatax.getGeographyLevel();
-								
-								List districtuuids =  new ArrayList<>();
-								
-								if(userProvider.getUser().getDistrict() != null) {
-									districtuuids.add(userProvider.getUser().getDistrict().getUuid());
-									popDto = FacadeProvider.getPopulationDataFacade().fetchPopulationDataSelectionByUserDistricts(districtuuids);
 
-								}else if (userProvider.getUser().getDistricts().size() > 0 ){
+								List districtuuids = new ArrayList<>();
+
+								if (userProvider.getUser().getDistrict() != null) {
+									districtuuids.add(userProvider.getUser().getDistrict().getUuid());
+									popDto = FacadeProvider.getPopulationDataFacade()
+											.fetchPopulationDataSelectionByUserDistricts(districtuuids);
+
+								} else if (userProvider.getUser().getDistricts().size() > 0) {
 									for (DistrictReferenceDto districts : userProvider.getUser().getDistricts()) {
 										districtuuids.add(districts.getUuid());
 									}
-									popDto = FacadeProvider.getPopulationDataFacade().fetchPopulationDataSelectionByUserDistricts(districtuuids);
+									popDto = FacadeProvider.getPopulationDataFacade()
+											.fetchPopulationDataSelectionByUserDistricts(districtuuids);
 
-								}else {
-									popDto = FacadeProvider.getPopulationDataFacade().fetchPopulationDataSelectionByCampaign(campaignz.getValue().getUuid());
+								} else {
+									popDto = FacadeProvider.getPopulationDataFacade()
+											.fetchPopulationDataSelectionByCampaign(campaignz.getValue().getUuid());
 								}
 
 								CampaignFormDataEditForm cam = new CampaignFormDataEditForm(e.getValue(),
-										campaignz.getValue(), false, null, grid, formGeographyLevel, campaign, expiryDto, popDto);
+										campaignz.getValue(), false, null, grid, formGeographyLevel, campaign,
+										expiryDto, popDto);
 								// add(cam);
 
 								newForm.setValue(null);
@@ -1484,8 +1482,6 @@ public class CampaignDataView extends VerticalLayout
 			reload();
 			updateRowCount();
 		});
-		
-		
 
 		enterBulkEdit.getStyle().set("margin-top", "5px");
 
@@ -1548,185 +1544,191 @@ public class CampaignDataView extends VerticalLayout
 
 		add(filterBlock);
 	}
-	
-	
+
 	private StreamResource createZipExportResource() {
-	    return new StreamResource(exportFileName + ".zip", () -> {
-	        try {
-	            List<CampaignFormDataIndexDto> exportRows = fetchExportRows();
-	            exportImageFileNames = buildExportImageFileNames(exportRows);
-	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+		return new StreamResource(exportFileName + ".zip", () -> {
+			try {
+				List<CampaignFormDataIndexDto> exportRows = fetchExportRows();
+				exportImageFileNames = buildExportImageFileNames(exportRows);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				try (ZipOutputStream zos = new ZipOutputStream(baos)) {
 
-	                zos.putNextEntry(new ZipEntry(exportFileName + ".csv"));
-	                zos.write(readCsvBytes());
-	                zos.closeEntry();
+					zos.putNextEntry(new ZipEntry(exportFileName + ".csv"));
+					zos.write(readCsvBytes());
+					zos.closeEntry();
 
-	                for (Map.Entry<String, byte[]> img : collectImagesFromGrid(exportRows).entrySet()) {
-	                    zos.putNextEntry(new ZipEntry("images/" + img.getKey()));
-	                    zos.write(img.getValue());
-	                    zos.closeEntry();
-	                }
-	            }
-	            return new ByteArrayInputStream(baos.toByteArray());
-	        } catch (IOException e) {
-	            logger.error("Failed to generate ZIP export", e);
-	            return new ByteArrayInputStream(new byte[0]);
-	        }
-	    });
+					for (Map.Entry<String, byte[]> img : collectImagesFromGrid(exportRows).entrySet()) {
+						zos.putNextEntry(new ZipEntry("images/" + img.getKey()));
+						zos.write(img.getValue());
+						zos.closeEntry();
+					}
+				}
+				return new ByteArrayInputStream(baos.toByteArray());
+			} catch (IOException e) {
+				logger.error("Failed to generate ZIP export", e);
+				return new ByteArrayInputStream(new byte[0]);
+			}
+		});
 	}
 
 	private byte[] readCsvBytes() throws IOException {
-	    try (InputStream in = exporter.getCsvInputStream()) {
-	        return in.readAllBytes();
-	    }
+		try (InputStream in = exporter.getCsvInputStream()) {
+			return in.readAllBytes();
+		}
 	}
-	private Map<String, byte[]> collectImagesFromGrid(List<CampaignFormDataIndexDto> exportRows) {
-	    Map<String, byte[]> images = new LinkedHashMap<>();
 
-	    for (CampaignFormDataIndexDto item : exportRows) {
-	        if (item.getFormValues() == null) {
-	            continue;
-	        }
-	        for (CampaignFormDataEntry entry : item.getFormValues()) {
-	            for (CampaignFormImageValue img : extractImageValues(entry.getValue())) {
-	                if (!img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
-	                    continue;
-	                }
-	                String exportName = exportImageFileName(img, entry.getId());
-	                if (images.containsKey(exportName)) {
-	                    continue;
-	                }
-	                try {
-	                    images.put(exportName, FacadeProvider.getCampaignFormImageFacade().readImage(img.getImageId()));
-	                } catch (IOException e) {
-	                    logger.error("Could not read image " + img.getImageId(), e);
-	                }
-	            }
-	        }
-	    }
-	    return images;
+	private Map<String, byte[]> collectImagesFromGrid(List<CampaignFormDataIndexDto> exportRows) {
+		Map<String, byte[]> images = new LinkedHashMap<>();
+
+		for (CampaignFormDataIndexDto item : exportRows) {
+			if (item.getFormValues() == null) {
+				continue;
+			}
+			for (CampaignFormDataEntry entry : item.getFormValues()) {
+				for (CampaignFormImageValue img : extractImageValues(entry.getValue())) {
+					if (!img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
+						continue;
+					}
+					String exportName = exportImageFileName(img, entry.getId());
+					if (images.containsKey(exportName)) {
+						continue;
+					}
+					try {
+						images.put(exportName, FacadeProvider.getCampaignFormImageFacade().readImage(img.getImageId()));
+					} catch (IOException e) {
+						logger.error("Could not read image " + img.getImageId(), e);
+					}
+				}
+			}
+		}
+		return images;
 	}
 
 	/**
-	 * Fetches the rows in the very same order the grid exporter writes them, so the row numbers
-	 * stamped on the exported images line up with the exported CSV.
+	 * Fetches the rows in the very same order the grid exporter writes them, so the
+	 * row numbers stamped on the exported images line up with the exported CSV.
 	 */
 	private List<CampaignFormDataIndexDto> fetchExportRows() {
-	    Query<CampaignFormDataIndexDto, CampaignFormDataCriteria> query = new Query<>(0,
-	            dataProvider.size(new Query<>()), grid.getDataCommunicator().getBackEndSorting(),
-	            grid.getDataCommunicator().getInMemorySorting(), null);
-	    return dataProvider.fetch(query).collect(Collectors.toList());
+		Query<CampaignFormDataIndexDto, CampaignFormDataCriteria> query = new Query<>(0,
+				dataProvider.size(new Query<>()), grid.getDataCommunicator().getBackEndSorting(),
+				grid.getDataCommunicator().getInMemorySorting(), null);
+		return dataProvider.fetch(query).collect(Collectors.toList());
 	}
 
 	/**
-	 * Maps every exported image to a unique file name following the geographic naming convention
-	 * (region_province_district_clusterNumber_clusterName, see the image upload naming) extended with the
-	 * image field id and the 1-based export row number, so images can be matched to their CSV row and to the
-	 * field they belong to. A trailing counter is added only when a field holds several images for the same
-	 * row. The CSV image column uses this exact same name, so it maps directly onto the ZIP entry.
+	 * Maps every exported image to a unique file name following the geographic
+	 * naming convention (region_province_district_clusterNumber_clusterName, see
+	 * the image upload naming) extended with the image field id and the 1-based
+	 * export row number, so images can be matched to their CSV row and to the field
+	 * they belong to. A trailing counter is added only when a field holds several
+	 * images for the same row. The CSV image column uses this exact same name, so
+	 * it maps directly onto the ZIP entry.
 	 */
 	private Map<String, String> buildExportImageFileNames(List<CampaignFormDataIndexDto> exportRows) {
-	    Map<String, String> fileNames = new LinkedHashMap<>();
-	    Map<String, String> geoBaseNames = new HashMap<>();
-	    int rowNumber = 0;
+		Map<String, String> fileNames = new LinkedHashMap<>();
+		Map<String, String> geoBaseNames = new HashMap<>();
+		int rowNumber = 0;
 
-	    for (CampaignFormDataIndexDto item : exportRows) {
-	        rowNumber++;
-	        Map<String, Integer> occurrences = new HashMap<>();
-	        if (item.getFormValues() == null) {
-	            continue;
-	        }
-	        for (CampaignFormDataEntry entry : item.getFormValues()) {
-	            String fieldId = sanitizeFileSegment(entry.getId());
-	            for (CampaignFormImageValue img : extractImageValues(entry.getValue())) {
-	                if (!img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
-	                    continue;
-	                }
-	                String key = imageExportKey(img.getImageId(), fieldId);
-	                if (fileNames.containsKey(key)) {
-	                    continue;
-	                }
-	                String geoBaseName = geoBaseNames.computeIfAbsent(geoKey(item), k -> imageGeoBaseName(item));
-	                StringBuilder name = new StringBuilder(geoBaseName).append('_').append(fieldId).append('_').append(rowNumber);
-	                int occurrence = occurrences.merge(fieldId, 1, Integer::sum);
-	                if (occurrence > 1) {
-	                    name.append('_').append(occurrence);
-	                }
-	                fileNames.put(key, name.append('.').append(imageExtension(img)).toString());
-	            }
-	        }
-	    }
-	    return fileNames;
+		for (CampaignFormDataIndexDto item : exportRows) {
+			rowNumber++;
+			Map<String, Integer> occurrences = new HashMap<>();
+			if (item.getFormValues() == null) {
+				continue;
+			}
+			for (CampaignFormDataEntry entry : item.getFormValues()) {
+				String fieldId = sanitizeFileSegment(entry.getId());
+				for (CampaignFormImageValue img : extractImageValues(entry.getValue())) {
+					if (!img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
+						continue;
+					}
+					String key = imageExportKey(img.getImageId(), fieldId);
+					if (fileNames.containsKey(key)) {
+						continue;
+					}
+					String geoBaseName = geoBaseNames.computeIfAbsent(geoKey(item), k -> imageGeoBaseName(item));
+					StringBuilder name = new StringBuilder(geoBaseName).append('_').append(fieldId).append('_')
+							.append(rowNumber);
+					int occurrence = occurrences.merge(fieldId, 1, Integer::sum);
+					if (occurrence > 1) {
+						name.append('_').append(occurrence);
+					}
+					fileNames.put(key, name.append('.').append(imageExtension(img)).toString());
+				}
+			}
+		}
+		return fileNames;
 	}
 
 	private String exportImageFileName(CampaignFormImageValue img, String fieldId) {
-	    if (exportImageFileNames != null && StringUtils.isNotBlank(img.getImageId())) {
-	        String mapped = exportImageFileNames.get(imageExportKey(img.getImageId(), sanitizeFileSegment(fieldId)));
-	        if (StringUtils.isNotBlank(mapped)) {
-	            return mapped;
-	        }
-	    }
-	    return imageDisplayName(img);
+		if (exportImageFileNames != null && StringUtils.isNotBlank(img.getImageId())) {
+			String mapped = exportImageFileNames.get(imageExportKey(img.getImageId(), sanitizeFileSegment(fieldId)));
+			if (StringUtils.isNotBlank(mapped)) {
+				return mapped;
+			}
+		}
+		return imageDisplayName(img);
 	}
 
 	private String imageExportKey(String imageId, String fieldId) {
-	    return imageId + "|" + fieldId;
+		return imageId + "|" + fieldId;
 	}
 
 	private String geoKey(CampaignFormDataIndexDto item) {
-	    return String.join("|", StringUtils.defaultString(item.getArea()), StringUtils.defaultString(item.getRegion()),
-	            StringUtils.defaultString(item.getDistrict()),
-	            item.getClusternumber() == null ? "" : String.valueOf(item.getClusternumber()),
-	            StringUtils.defaultString(item.getCommunity()));
+		return String.join("|", StringUtils.defaultString(item.getArea()), StringUtils.defaultString(item.getRegion()),
+				StringUtils.defaultString(item.getDistrict()),
+				item.getClusternumber() == null ? "" : String.valueOf(item.getClusternumber()),
+				StringUtils.defaultString(item.getCommunity()));
 	}
 
-	/** Builds the geographic part of the file name using the shared image naming convention. */
+	/**
+	 * Builds the geographic part of the file name using the shared image naming
+	 * convention.
+	 */
 	private String imageGeoBaseName(CampaignFormDataIndexDto item) {
-	    CampaignFormImageNamingContext context = new CampaignFormImageNamingContext();
-	    context.setRegion(item.getArea());
-	    context.setProvince(item.getRegion());
-	    context.setDistrict(item.getDistrict());
-	    context.setClusterName(item.getCommunity());
-	    context.setClusterNumber(item.getClusternumber() == null ? null : String.valueOf(item.getClusternumber()));
-	    return FacadeProvider.getCampaignFormImageFacade().generateImageFileName(context);
+		CampaignFormImageNamingContext context = new CampaignFormImageNamingContext();
+		context.setRegion(item.getArea());
+		context.setProvince(item.getRegion());
+		context.setDistrict(item.getDistrict());
+		context.setClusterName(item.getCommunity());
+		context.setClusterNumber(item.getClusternumber() == null ? null : String.valueOf(item.getClusternumber()));
+		return FacadeProvider.getCampaignFormImageFacade().generateImageFileName(context);
 	}
 
 	private String imageExtension(CampaignFormImageValue img) {
-	    for (String candidate : new String[] { img.getGeneratedFileName(), img.getOriginalFileName() }) {
-	        if (StringUtils.isNotBlank(candidate)) {
-	            int dot = candidate.lastIndexOf('.');
-	            if (dot >= 0 && dot < candidate.length() - 1) {
-	                String extension = candidate.substring(dot + 1).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
-	                if (StringUtils.isNotBlank(extension)) {
-	                    return "jpeg".equals(extension) ? "jpg" : extension;
-	                }
-	            }
-	        }
-	    }
-	    String mimeType = img.getMimeType();
-	    if (StringUtils.isNotBlank(mimeType) && mimeType.trim().toLowerCase(Locale.ROOT).startsWith("image/")) {
-	        String extension = mimeType.trim().toLowerCase(Locale.ROOT).substring("image/".length());
-	        if ("jpeg".equals(extension)) {
-	            return "jpg";
-	        }
-	        if (StringUtils.isNotBlank(extension)) {
-	            return extension;
-	        }
-	    }
-	    return "jpg";
+		for (String candidate : new String[] { img.getGeneratedFileName(), img.getOriginalFileName() }) {
+			if (StringUtils.isNotBlank(candidate)) {
+				int dot = candidate.lastIndexOf('.');
+				if (dot >= 0 && dot < candidate.length() - 1) {
+					String extension = candidate.substring(dot + 1).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]",
+							"");
+					if (StringUtils.isNotBlank(extension)) {
+						return "jpeg".equals(extension) ? "jpg" : extension;
+					}
+				}
+			}
+		}
+		String mimeType = img.getMimeType();
+		if (StringUtils.isNotBlank(mimeType) && mimeType.trim().toLowerCase(Locale.ROOT).startsWith("image/")) {
+			String extension = mimeType.trim().toLowerCase(Locale.ROOT).substring("image/".length());
+			if ("jpeg".equals(extension)) {
+				return "jpg";
+			}
+			if (StringUtils.isNotBlank(extension)) {
+				return extension;
+			}
+		}
+		return "jpg";
 	}
 
 	private String sanitizeFileSegment(String input) {
-	    if (StringUtils.isBlank(input)) {
-	        return "NA";
-	    }
-	    String normalized = input.trim().replaceAll("\\s+", "-").replaceAll("[^A-Za-z0-9\\-]", "");
-	    normalized = normalized.replaceAll("-+", "-");
-	    normalized = StringUtils.strip(normalized, "-");
-	    return StringUtils.isBlank(normalized) ? "NA" : normalized;
+		if (StringUtils.isBlank(input)) {
+			return "NA";
+		}
+		String normalized = input.trim().replaceAll("\\s+", "-").replaceAll("[^A-Za-z0-9\\-]", "");
+		normalized = normalized.replaceAll("-+", "-");
+		normalized = StringUtils.strip(normalized, "-");
+		return StringUtils.isBlank(normalized) ? "NA" : normalized;
 	}
-	
 
 	public void buildLqasTransposedData(CampaignFormDataCriteria criteria) {
 //		FacadeProvider.getCampaignFormDataFacade().getTransposedCampaignFormDataLQAS(criteria);
@@ -1844,8 +1846,6 @@ public class CampaignDataView extends VerticalLayout
 		return new HashSet<>(selectedItems);
 	}
 
-
-
 	public void generateTransposeDataFunctions(HorizontalLayout actionButionLayout, String formName,
 			CampaignFormDataCriteria criteria) {
 
@@ -1898,24 +1898,25 @@ public class CampaignDataView extends VerticalLayout
 
 		}
 	}
-	
+
 	private boolean checkIfActiveFormContainsImageField(String campaignFormMetaUuid) {
-	    if (campaignFormMetaUuid == null) {
-	        return false;
-	    }
+		if (campaignFormMetaUuid == null) {
+			return false;
+		}
 
-	    List<CampaignFormElement> campaignFormElements =  FacadeProvider.getCampaignFormMetaFacade().getCampaignFormMetaByUuid(campaignFormMetaUuid).getCampaignFormElements();
-	    if (campaignFormElements == null) {
-	        return false;
-	    }
+		List<CampaignFormElement> campaignFormElements = FacadeProvider.getCampaignFormMetaFacade()
+				.getCampaignFormMetaByUuid(campaignFormMetaUuid).getCampaignFormElements();
+		if (campaignFormElements == null) {
+			return false;
+		}
 
-	    for (CampaignFormElement element : campaignFormElements) {
-	        if ("image".equalsIgnoreCase(element.getType())) {
-	            return true;
-	        }
-	    }
+		for (CampaignFormElement element : campaignFormElements) {
+			if ("image".equalsIgnoreCase(element.getType())) {
+				return true;
+			}
+		}
 
-	    return false;
+		return false;
 	}
 
 	public void removeColumnsSelectionn() {
@@ -2127,17 +2128,25 @@ public class CampaignDataView extends VerticalLayout
 		verifyAllSelectedItems(grid.getSelectedItems());
 
 	}
-	
+
 	private void handleDataUnVerificationAction() {
 		unVerifyAllSelectedItems(grid.getSelectedItems());
 	}
-	
+
 	private void handleDataUnPublishingAction() {
 		unPublishAllSelectedItems(grid.getSelectedItems());
 	}
 
 	private void handleDataPublishingAction() {
 		publishAllSelectedItems(grid.getSelectedItems());
+	}
+
+	private void handleDataUnValidateAction() {
+		unValidateAllSelectedItems(grid.getSelectedItems());
+	}
+
+	private void handleDataValidateAction() {
+		validateAllSelectedItems(grid.getSelectedItems());
 	}
 
 	public void deleteAllSelectedItems(Collection<CampaignFormDataIndexDto> selectedRows) {
@@ -2236,19 +2245,13 @@ public class CampaignDataView extends VerticalLayout
 			confirmationDialog.addConfirmListener(e -> {
 				List<String> uuids = selectedRows.stream().map(CampaignFormDataIndexDto::getUuid)
 						.collect(Collectors.toList());
-
-//				System.err.println(" verification kicke from frontend");
-
-//			FacadeProvider.getCampaignFormDataFacade().verifyCampaignData(event.getCampaign().getUuid(), true);
-
 				FacadeProvider.getCampaignFormDataFacade().publishCampaignData(uuids, false);
-//				 Notification.show("Camapaign Dayta Deleted ");
 				reload();
+
 				if (leaveBulkEdit.isVisible()) {
 					leaveBulkEdit.setVisible(false);
 					enterBulkEdit.setVisible(true);
 					grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-
 					dropdownBulkOperations.setVisible(false);
 					selectAllButtonpLACEHOLDER.setVisible(false);
 
@@ -2428,7 +2431,137 @@ public class CampaignDataView extends VerticalLayout
 		}
 	}
 
-	
+	public void validateAllSelectedItems(Collection<CampaignFormDataIndexDto> selectedRows) {
+		confirmationDialog = new ConfirmDialog();
+		boolean isDataDirty = false;
+		for (CampaignFormDataIndexDto selectedItem : selectedRows) {
+
+			System.out.println(selectedRows.size() + "<<<Size of selected items " + selectedItem.isIsverified()
+					+ ">>>> Dirty data " + isDataDirty);
+
+			if (selectedItem.isIsverified() == false) {
+				isDataDirty = true;
+			}
+
+//			System.out.println(selectedRows.size() + "<<<2222222Size of selected items " + selectedItem.isIsverified()
+//					+ "2222222222>>>> Dirty data " + isDataDirty);
+
+		}
+		if (selectedRows.size() == 0 || isDataDirty) {
+			confirmationDialog.setCancelable(false);
+			confirmationDialog.setRejectable(false);
+			confirmationDialog.addCancelListener(e -> confirmationDialog.close());
+			confirmationDialog.setConfirmText(I18nProperties.getCaption(Captions.actionOkay));
+			if (selectedRows.size() == 0 && (isDataDirty || !isDataDirty)) {
+				confirmationDialog.setText("You have not selected any data to be published.");
+
+			} else if (selectedRows.size() > 0 && isDataDirty) {
+				confirmationDialog.setText(
+						"You have selected 1 or more unverified records to publish. Please verify any records you wish to publish first.");
+
+			}
+			confirmationDialog.setHeader("Error Publishing Campaign Data");
+			confirmationDialog.open();
+
+		} else {
+			confirmationDialog.setCancelable(true);
+			confirmationDialog.setRejectable(true);
+			confirmationDialog.setRejectText(I18nProperties.getCaption(Captions.actionNo));
+			confirmationDialog.setConfirmText(I18nProperties.getCaption(Captions.actionYes));
+			confirmationDialog.addCancelListener(e -> confirmationDialog.close());
+			confirmationDialog.addRejectListener(e -> confirmationDialog.close());
+			confirmationDialog.open();
+			confirmationDialog.setHeader("Publish Campaign Data");
+//TODO: Language
+
+			confirmationDialog
+					.setText("Are you sure you want to Publish " + selectedRows.size() + " selected Campaign Data?");
+
+			confirmationDialog.addConfirmListener(e -> {
+				List<String> uuids = selectedRows.stream().map(CampaignFormDataIndexDto::getUuid)
+						.collect(Collectors.toList());
+				FacadeProvider.getCampaignFormDataFacade().publishCampaignData(uuids, false);
+				reload();
+
+				if (leaveBulkEdit.isVisible()) {
+					leaveBulkEdit.setVisible(false);
+					enterBulkEdit.setVisible(true);
+					grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+					dropdownBulkOperations.setVisible(false);
+					selectAllButtonpLACEHOLDER.setVisible(false);
+
+				}
+			});
+
+		}
+	}
+
+	public void unValidateAllSelectedItems(Collection<CampaignFormDataIndexDto> selectedRows) {
+		confirmationDialog = new ConfirmDialog();
+		boolean isDataDirty = false;
+		for (CampaignFormDataIndexDto selectedItem : selectedRows) {
+
+			System.out.println(selectedRows.size() + "<<unpublish<Size of selected items " + selectedItem.isIsverified()
+					+ ">>>> Dirty data " + isDataDirty);
+
+			if (selectedItem.isIsverified() == false) {
+				isDataDirty = true;
+			}
+
+//			System.out.println(selectedRows.size() + "<<<2222222Size of selected items " + selectedItem.isIsverified()
+//					+ "2222222222>>>> Dirty data " + isDataDirty);
+
+		}
+		if (selectedRows.size() == 0 || isDataDirty) {
+			confirmationDialog.setCancelable(false);
+			confirmationDialog.setRejectable(false);
+			confirmationDialog.addCancelListener(e -> confirmationDialog.close());
+			confirmationDialog.setConfirmText(I18nProperties.getCaption(Captions.actionOkay));
+			if (selectedRows.size() == 0 && (isDataDirty || !isDataDirty)) {
+				confirmationDialog.setText("You have not selected any data to be unpublished.");
+
+			} else if (selectedRows.size() > 0 && isDataDirty) {
+				confirmationDialog.setText(
+						"You have selected 1 or more unverified records to publish. Please verify any records you wish to unpublish first.");
+
+			}
+			confirmationDialog.setHeader("Error Unpublishing Campaign Data");
+			confirmationDialog.open();
+
+		} else {
+			confirmationDialog.setCancelable(true);
+			confirmationDialog.setRejectable(true);
+			confirmationDialog.setRejectText(I18nProperties.getCaption(Captions.actionNo));
+			confirmationDialog.setConfirmText(I18nProperties.getCaption(Captions.actionYes));
+			confirmationDialog.addCancelListener(e -> confirmationDialog.close());
+			confirmationDialog.addRejectListener(e -> confirmationDialog.close());
+			confirmationDialog.open();
+			confirmationDialog.setHeader("Unpublish Campaign Data");
+//TODO: Language
+
+			confirmationDialog
+					.setText("Are you sure you want to Unpublish " + selectedRows.size() + " selected Campaign Data?");
+
+			confirmationDialog.addConfirmListener(e -> {
+				List<String> uuids = selectedRows.stream().map(CampaignFormDataIndexDto::getUuid)
+						.collect(Collectors.toList());
+
+				FacadeProvider.getCampaignFormDataFacade().publishCampaignData(uuids, true);
+				reload();
+				if (leaveBulkEdit.isVisible()) {
+					leaveBulkEdit.setVisible(false);
+					enterBulkEdit.setVisible(true);
+					grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+
+					dropdownBulkOperations.setVisible(false);
+					selectAllButtonpLACEHOLDER.setVisible(false);
+
+				}
+			});
+
+		}
+	}
+
 	public void reload() {
 
 		criteria.campaign(campaignz.getValue());
@@ -2451,7 +2584,6 @@ public class CampaignDataView extends VerticalLayout
 		languageHandler();
 		setMargin(false);
 
-  
 		grid = new Grid<>(CampaignFormDataIndexDto.class, false);
 //		grid.setSelectionMode(SelectionMode.SINGLE);
 		grid.setColumnReorderingAllowed(true);
@@ -2572,13 +2704,15 @@ public class CampaignDataView extends VerticalLayout
 			grid.addColumn(rCodeRender).setHeader(I18nProperties.getCaption(Captions.Area_externalId)).setSortable(true)
 					.setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.Area_externalId));
-			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION).setHeader(I18nProperties.getCaption(Captions.region))
-					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getRegion());
+			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION)
+					.setHeader(I18nProperties.getCaption(Captions.region)).setSortable(true).setResizable(true)
+					.setAutoWidth(true).setTooltipGenerator(e -> e.getRegion());
 			pCodeColumn = grid.addColumn(pCodeRender).setHeader(I18nProperties.getCaption(Captions.Region_externalID))
 					.setSortable(true).setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.Region_externalID));
-			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT).setHeader(I18nProperties.getCaption(Captions.district))
-					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getDistrict());
+			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT)
+					.setHeader(I18nProperties.getCaption(Captions.district)).setSortable(true).setResizable(true)
+					.setAutoWidth(true).setTooltipGenerator(e -> e.getDistrict());
 			dCodeColumn = grid.addColumn(dCodeRender).setHeader(I18nProperties.getCaption(Captions.District_externalID))
 					.setSortable(true).setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.District_externalID));
@@ -2640,14 +2774,16 @@ public class CampaignDataView extends VerticalLayout
 			grid.addColumn(rCodeRender).setHeader(I18nProperties.getCaption(Captions.Area_externalId)).setSortable(true)
 					.setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.Area_externalId));
-			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION).setHeader(I18nProperties.getCaption(Captions.region))
-					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getRegion());
+			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION)
+					.setHeader(I18nProperties.getCaption(Captions.region)).setSortable(true).setResizable(true)
+					.setAutoWidth(true).setTooltipGenerator(e -> e.getRegion());
 			pCodeColumn = grid.addColumn(pCodeRender).setHeader(I18nProperties.getCaption(Captions.Region_externalID))
 					.setSortable(true).setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.Region_externalID));
-			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT).setHeader(I18nProperties.getCaption(Captions.district))
-					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getDistrict());
-			dCodeColumn =  grid.addColumn(dCodeRender).setHeader(I18nProperties.getCaption(Captions.District_externalID))
+			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT)
+					.setHeader(I18nProperties.getCaption(Captions.district)).setSortable(true).setResizable(true)
+					.setAutoWidth(true).setTooltipGenerator(e -> e.getDistrict());
+			dCodeColumn = grid.addColumn(dCodeRender).setHeader(I18nProperties.getCaption(Captions.District_externalID))
 					.setSortable(true).setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> I18nProperties.getCaption(Captions.District_externalID));
 
@@ -2716,7 +2852,8 @@ public class CampaignDataView extends VerticalLayout
 					.setSortable(true).setResizable(true).setAutoWidth(true)
 					.setTooltipGenerator(e -> e.getRcode().toString()).setFooter(CampaignFormDataIndexDto.RCODE);
 
-			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION).setHeader(I18nProperties.getCaption(Captions.region))
+			provinceNameColumn = grid.addColumn(CampaignFormDataIndexDto.REGION)
+					.setHeader(I18nProperties.getCaption(Captions.region))
 //					createHeaderComponent(I18nProperties.getCaption(Captions.region), I18nProperties.getCaption(Captions.region)))
 					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getRegion())
 					.setFooter(I18nProperties.getCaption(Captions.region).toLowerCase());
@@ -2725,25 +2862,26 @@ public class CampaignDataView extends VerticalLayout
 					.setHeader(I18nProperties.getCaption(Captions.Region_externalID))
 //					createHeaderComponent(I18nProperties.getCaption(Captions.Region_externalID), I18nProperties.getCaption(Captions.Region_externalID)))
 					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> {
-					    Integer pcode = e.getPcode();
-					    return pcode == null ? "" : String.valueOf(pcode);
+						Integer pcode = e.getPcode();
+						return pcode == null ? "" : String.valueOf(pcode);
 
 					}).setFooter(CampaignFormDataIndexDto.PCODE);
-			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT).setHeader(I18nProperties.getCaption(Captions.district))
+			districtNameColumn = grid.addColumn(CampaignFormDataIndexDto.DISTRICT)
+					.setHeader(I18nProperties.getCaption(Captions.district))
 //			createHeaderComponent(I18nProperties.getCaption(Captions.district),I18nProperties.getCaption(Captions.district)))
 					.setSortable(true).setResizable(true).setAutoWidth(true).setTooltipGenerator(e -> e.getDistrict())
 					.setFooter(CampaignFormDataIndexDto.DISTRICT);
-			dCodeColumn =  grid.addColumn(CampaignFormDataIndexDto.DCODE)
+			dCodeColumn = grid.addColumn(CampaignFormDataIndexDto.DCODE)
 					.setHeader(I18nProperties.getCaption(Captions.District_externalID))
 //					.setHeaderText("Your Tooltip Text")
 //					createHeaderComponent(I18nProperties.getCaption(Captions.District_externalID),I18nProperties.getCaption(Captions.District_externalID)))
 					.setSortable(true).setResizable(true).setAutoWidth(true).setFooter(CampaignFormDataIndexDto.DCODE)
 					.setTooltipGenerator(e -> {
 //						.setTooltipGenerator(e -> {
-						    Integer dcode = e.getDcode();
-						    return dcode == null ? "" : String.valueOf(dcode);
+						Integer dcode = e.getDcode();
+						return dcode == null ? "" : String.valueOf(dcode);
 //						});
-					    							
+
 					});
 
 //			if(!isActiveFormDistrictLevel) {
@@ -2832,28 +2970,78 @@ public class CampaignDataView extends VerticalLayout
 								.getFormsWithExpiryByCampaignUuidAndFormUuid(criteria.getCampaign().getUuid(),
 										criteria.getCampaignFormMeta().getUuid())
 								.size() > 0) {
-							CampaignFormMetaExpiryDto expiryDto = FacadeProvider.getCampaignFormMetaWithExpFacade()
-									.getFormsWithExpiryByCampaignUuidAndFormUuid(criteria.getCampaign().getUuid(),
-											criteria.getCampaignFormMeta().getUuid())
-									.get(0);
-							CampaignDto campaign = FacadeProvider.getCampaignFacade()
-									.getByUuid(criteria.getCampaign().getUuid()); // campaignz.getValue().getUuid());
+							
+								CampaignFormMetaExpiryDto expiryDto = FacadeProvider.getCampaignFormMetaWithExpFacade()
+										.getFormsWithExpiryByCampaignUuidAndFormUuid(criteria.getCampaign().getUuid(),
+												criteria.getCampaignFormMeta().getUuid())
+										.get(0);
+								CampaignDto campaign = FacadeProvider.getCampaignFacade()
+										.getByUuid(criteria.getCampaign().getUuid()); // campaignz.getValue().getUuid());
 
-							if (checkFormValidityByPhase(e.getValue().getFormType().toString().toLowerCase(), campaign,
-									expiryDto)) {
+								if (checkFormValidityByPhase(e.getValue().getFormType().toString().toLowerCase(), campaign,
+										expiryDto)) {
+									
+									if(e.getValue().getFormType().toString().toLowerCase().equalsIgnoreCase("intra-campaign")) {
+										
+										if(userProvider.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) 
+												|| userProvider.getUser().getUserRoles().contains(UserRole.EDITOR_USER)
+												 || userProvider.getUser().getUserRoles().contains(UserRole.ADMIN)) {
+												CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+														.getCampaignFormDataByUuid(e.getValue().getUuid());
 
-								CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
-										.getCampaignFormDataByUuid(e.getValue().getUuid());
+												CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+														.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
 
-								CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
-										.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+												CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
+														campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
+														campaign, expiryDto, popDto);
+											}else {
+												if(!e.getValue().isIsvalidated()) {
+													CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+															.getCampaignFormDataByUuid(e.getValue().getUuid());
+
+													CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+															.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+
+													CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
+															campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
+															campaign, expiryDto, popDto);	
+												}else {
+											
+												Notification notification = new Notification();
+												notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+												notification.setPosition(Position.TOP_END);
+												Div text = new Div(new Text(
+														"This Form has been Validated. Please contact System Administrator to update the record."),
+														new HtmlComponent("br"),
+														new Text("Close this warning to continue working in APMIS."));
+
+												Button closeButton = new Button(new Icon("lumo", "cross"));
+												closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+												//							closeButton.setAriaLabel("Close");
+												closeButton.addClickListener(event -> {
+													notification.close();
+												});
+												}
+												
+											}
+										}else {
+									
+									
+
+									CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+											.getCampaignFormDataByUuid(e.getValue().getUuid());
+
+									CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+											.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+
+									CampaignFormDataEditForm cam = new CampaignFormDataEditForm(
+											formData.getCampaignFormMeta(), campaignz.getValue(), true, formData.getUuid(),
+											grid, formMeta.getGeographyLevel(), campaign, expiryDto, popDto);
+								}
 								
-								
+								}
 
-								CampaignFormDataEditForm cam = new CampaignFormDataEditForm(
-										formData.getCampaignFormMeta(), campaignz.getValue(), true, formData.getUuid(),
-										grid, formMeta.getGeographyLevel(), campaign, expiryDto, popDto);
-							}
 						} else {
 							Notification notification = new Notification();
 							notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -2881,60 +3069,263 @@ public class CampaignDataView extends VerticalLayout
 				});
 			}
 		} else {
-
+			
 			grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+
 			grid.asSingleSelect().addValueChangeListener(e -> {
 
-				if (FacadeProvider.getCampaignFormMetaWithExpFacade().getFormsWithExpiryByCampaignUuidAndFormUuid(
-						criteria.getCampaign().getUuid(), criteria.getCampaignFormMeta().getUuid()).size() > 0) {
-					CampaignFormMetaExpiryDto expiryDto = FacadeProvider.getCampaignFormMetaWithExpFacade()
-							.getFormsWithExpiryByCampaignUuidAndFormUuid(criteria.getCampaign().getUuid(),
-									criteria.getCampaignFormMeta().getUuid())
-							.get(0);
-					CampaignDto campaign = FacadeProvider.getCampaignFacade()
-							.getByUuid(criteria.getCampaign().getUuid()); // campaignz.getValue().getUuid());
-					System.out.println( e.getSource().getSelectionModel().getFirstSelectedItem().get().getFormType() + "=========================================");
-					if (checkFormValidityByPhase(e.getValue().getFormType().toString().toLowerCase(), campaign,
-							expiryDto)) {
-				
-						CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
-								.getCampaignFormDataByUuid(e.getValue().getUuid());
+			    CampaignFormDataIndexDto selected = e.getValue();
 
-						CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
-								.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+			    // Ignore deselection events triggered by grid.deselectAll().
+			    if (selected == null) {
+			        return;
+			    }
 
-						CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
-								campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
-								campaign, expiryDto, popDto);
+			    if (FacadeProvider.getCampaignFormMetaWithExpFacade()
+			            .getFormsWithExpiryByCampaignUuidAndFormUuid(
+			                    criteria.getCampaign().getUuid(),
+			                    criteria.getCampaignFormMeta().getUuid())
+			            .size() > 0) {
 
-					} else {
-						Notification notification = new Notification();
-						notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-						notification.setPosition(Position.TOP_END);
-						Div text = new Div(new Text(
-								"This Form is not available for Data Entry. Please contact System Administrator to Specify Entry Period."),
-								new HtmlComponent("br"), new Text("Close this warning to continue working in APMIS."));
+			        CampaignFormMetaExpiryDto expiryDto =
+			                FacadeProvider.getCampaignFormMetaWithExpFacade()
+			                        .getFormsWithExpiryByCampaignUuidAndFormUuid(
+			                                criteria.getCampaign().getUuid(),
+			                                criteria.getCampaignFormMeta().getUuid())
+			                        .get(0);
 
-						Button closeButton = new Button(new Icon("lumo", "cross"));
-						closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-//				closeButton.setAriaLabel("Close");
-						closeButton.addClickListener(event -> {
-							notification.close();
-						});
+			        CampaignDto campaign = FacadeProvider.getCampaignFacade()
+			                .getByUuid(criteria.getCampaign().getUuid());
 
-						HorizontalLayout layoutx = new HorizontalLayout(text, closeButton);
-						layoutx.setAlignItems(Alignment.CENTER);
+			        String formType = selected.getFormType()
+			                .toString().toLowerCase();
 
-						notification.add(layoutx);
-						notification.open();
+			        if (checkFormValidityByPhase(formType, campaign, expiryDto)) {
+			        	
+			        	System.out.println("Form type selected =====================" + formType);
 
-					}
+			            if (formType.equalsIgnoreCase("intra-campaign")) {
+			            	
+				        	System.out.println("intra campaign form  =====================" + formType);
+//
 
-				}
+			                boolean canEditValidated = userProvider.getUser()
+			                        .getUserRoles().contains(UserRole.PUBLISH_USER)
+			                        || userProvider.getUser().getUserRoles()
+			                                .contains(UserRole.EDITOR_USER)
+			                        || userProvider.getUser().getUserRoles()
+			                                .contains(UserRole.ADMIN);
 
-				grid.deselectAll();
+				        	System.out.println(canEditValidated + "canEditValidatedintra campaign form  =====================selected.isIsvalidated()" + selected.isIsvalidated());
 
+			                if (canEditValidated && selected.isIsvalidated()||
+			                		canEditValidated && !selected.isIsvalidated() || 
+			                			!canEditValidated && !selected.isIsvalidated()
+			                		) {
+			                	
+					        	System.out.println(canEditValidated + "canEditValidatedintra campaign form  =====================selected.isIsvalidated()" + selected.isIsvalidated());
+
+
+			                    CampaignFormDataDto formData =
+			                            FacadeProvider.getCampaignFormDataFacade()
+			                                    .getCampaignFormDataByUuid(
+			                                            selected.getUuid());
+
+			                    CampaignFormMetaDto formMeta =
+			                            FacadeProvider.getCampaignFormMetaFacade()
+			                                    .getCampaignFormMetaByUuid(
+			                                            campaignFormCombo.getValue()
+			                                                    .getUuid());
+
+			                    new CampaignFormDataEditForm(
+			                            formData.getCampaignFormMeta(),
+			                            campaignz.getValue(),
+			                            true,
+			                            formData.getUuid(),
+			                            grid,
+			                            formMeta.getGeographyLevel(),
+			                            campaign,
+			                            expiryDto,
+			                            popDto);
+
+			                } else {
+			                	
+					        	System.out.println(canEditValidated + "invalid for entry canEditValidatedintra campaign form  =====================selected.isIsvalidated()" + selected.isIsvalidated());
+
+
+					        	Notification notification = Notification.show(
+					        	        "This Form has been Validated. Please contact "
+					        	                + "System Administrator to update the record.",
+					        	        5000,
+					        	        Notification.Position.TOP_END);
+
+					        	notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+			                }
+
+			            } else {
+
+			                CampaignFormDataDto formData =
+			                        FacadeProvider.getCampaignFormDataFacade()
+			                                .getCampaignFormDataByUuid(
+			                                        selected.getUuid());
+
+			                CampaignFormMetaDto formMeta =
+			                        FacadeProvider.getCampaignFormMetaFacade()
+			                                .getCampaignFormMetaByUuid(
+			                                        campaignFormCombo.getValue()
+			                                                .getUuid());
+
+			                new CampaignFormDataEditForm(
+			                        formData.getCampaignFormMeta(),
+			                        campaignz.getValue(),
+			                        true,
+			                        formData.getUuid(),
+			                        grid,
+			                        formMeta.getGeographyLevel(),
+			                        campaign,
+			                        expiryDto,
+			                        popDto);
+			            }
+
+			        } else {
+
+			            Notification notification = new Notification();
+			            notification.addThemeVariants(
+			                    NotificationVariant.LUMO_ERROR);
+			            notification.setPosition(Notification.Position.TOP_END);
+
+			            Div text = new Div(
+			                    new Text("This Form is not available for Data Entry. "
+			                            + "Please contact System Administrator to "
+			                            + "Specify Entry Period."),
+			                    new HtmlComponent("br"),
+			                    new Text("Close this warning to continue working "
+			                            + "in APMIS."));
+
+			            Button closeButton = new Button(new Icon("lumo", "cross"));
+			            closeButton.addThemeVariants(
+			                    ButtonVariant.LUMO_TERTIARY_INLINE);
+			            closeButton.addClickListener(event -> notification.close());
+
+			            HorizontalLayout layoutx =
+			                    new HorizontalLayout(text, closeButton);
+			            layoutx.setAlignItems(Alignment.CENTER);
+
+			            notification.add(layoutx);
+			            notification.open();
+			        }
+			    }
+
+			    grid.deselectAll();
 			});
+//
+//			grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+//			grid.asSingleSelect().addValueChangeListener(e -> {
+//
+//				if (FacadeProvider.getCampaignFormMetaWithExpFacade().getFormsWithExpiryByCampaignUuidAndFormUuid(
+//						criteria.getCampaign().getUuid(), criteria.getCampaignFormMeta().getUuid()).size() > 0) {
+//					CampaignFormMetaExpiryDto expiryDto = FacadeProvider.getCampaignFormMetaWithExpFacade()
+//							.getFormsWithExpiryByCampaignUuidAndFormUuid(criteria.getCampaign().getUuid(),
+//									criteria.getCampaignFormMeta().getUuid())
+//							.get(0);
+//					CampaignDto campaign = FacadeProvider.getCampaignFacade()
+//							.getByUuid(criteria.getCampaign().getUuid()); // campaignz.getValue().getUuid());
+////					System.out.println(e.getSource().getSelectionModel().getFirstSelectedItem().get().getFormType()
+////							+ "=========================================");
+//					
+//					if (checkFormValidityByPhase(e.getValue().getFormType().toString().toLowerCase(), campaign,
+//							expiryDto)) {
+//						
+//						if(e.getValue().getFormType().toString().toLowerCase().equalsIgnoreCase("intra-campaign")) {
+//							
+//						if(userProvider.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) 
+//								|| userProvider.getUser().getUserRoles().contains(UserRole.EDITOR_USER)
+//								 || userProvider.getUser().getUserRoles().contains(UserRole.ADMIN)) {
+//							
+//							System.out.println("who user with publish editor or admin access =====================" + e.getValue().isIsvalidated());
+//
+//								CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+//										.getCampaignFormDataByUuid(e.getValue().getUuid());
+//
+//								CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+//										.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+//
+//								CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
+//										campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
+//										campaign, expiryDto, popDto);
+//							}else {
+//								System.out.println("who user without publish editor or admin access =====================" + e.getValue().isIsvalidated());
+//								if(!e.getValue().isIsvalidated()) {
+//									CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+//											.getCampaignFormDataByUuid(e.getValue().getUuid());
+//
+//									CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+//											.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+//
+//									CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
+//											campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
+//											campaign, expiryDto, popDto);	
+//								}else {
+//							
+//								Notification notification = new Notification();
+//								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//								notification.setPosition(Position.TOP_END);
+//								Div text = new Div(new Text(
+//										"This Form has been Validated. Please contact System Administrator to update the record."),
+//										new HtmlComponent("br"),
+//										new Text("Close this warning to continue working in APMIS."));
+//
+//								Button closeButton = new Button(new Icon("lumo", "cross"));
+//								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+//								//							closeButton.setAriaLabel("Close");
+//								closeButton.addClickListener(event -> {
+//									notification.close();
+//								});
+//								}
+//								
+//							}
+//						}else {
+//
+//							CampaignFormDataDto formData = FacadeProvider.getCampaignFormDataFacade()
+//									.getCampaignFormDataByUuid(e.getValue().getUuid());
+//
+//							CampaignFormMetaDto formMeta = FacadeProvider.getCampaignFormMetaFacade()
+//									.getCampaignFormMetaByUuid(campaignFormCombo.getValue().getUuid());
+//
+//							CampaignFormDataEditForm cam = new CampaignFormDataEditForm(formData.getCampaignFormMeta(),
+//									campaignz.getValue(), true, formData.getUuid(), grid, formMeta.getGeographyLevel(),
+//									campaign, expiryDto, popDto);	
+//						}
+//
+//
+//					} else {
+//						Notification notification = new Notification();
+//						notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//						notification.setPosition(Position.TOP_END);
+//						Div text = new Div(new Text(
+//								"This Form is not available for Data Entry. Please contact System Administrator to Specify Entry Period."),
+//								new HtmlComponent("br"), new Text("Close this warning to continue working in APMIS."));
+//
+//						Button closeButton = new Button(new Icon("lumo", "cross"));
+//						closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+////				closeButton.setAriaLabel("Close");
+//						closeButton.addClickListener(event -> {
+//							notification.close();
+//						});
+//
+//						HorizontalLayout layoutx = new HorizontalLayout(text, closeButton);
+//						layoutx.setAlignItems(Alignment.CENTER);
+//
+//						notification.add(layoutx);
+//						notification.open();
+//
+//					}
+//
+//				}
+//
+//				grid.deselectAll();
+//
+//			});
 		}
 
 		exporter = GridExporter.createFor(grid);
@@ -2956,6 +3347,17 @@ public class CampaignDataView extends VerticalLayout
 		anchor.getElement().insertChild(0, icon.getElement());
 
 		add(grid);
+	}
+	
+	private void checkValidatedStatusAndUserPermissions(CampaignFormDataCriteria criteria) {
+		if (userProvider.getUser().getUsertype() == UserType.WHO_USER) {
+			if (userProvider.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) || userProvider.getUser().getUserRoles().contains(UserRole.EDITOR_USER) ) {
+				
+			}else {
+				
+			}
+
+		}
 	}
 
 	private void configureColumnStyles(CampaignFormDataCriteria criteria) {
@@ -2993,43 +3395,42 @@ public class CampaignDataView extends VerticalLayout
 			CampaignFormMetaGeographyLevel formGeographyLevel = formData.getGeographyLevel();
 
 			if (formGeographyLevel.equals(CampaignFormMetaGeographyLevel.REGION)) {
-				
+
 //				if (clusterNameColumn != null) {
-					clusterNameColumn.setVisible(false);
-					clusterNumberColumn.setVisible(false);
-					ccodeColumn.setVisible(false);
+				clusterNameColumn.setVisible(false);
+				clusterNumberColumn.setVisible(false);
+				ccodeColumn.setVisible(false);
 //				}
-				
+
 //				if (districtNameColumn != null) {
-					districtNameColumn.setVisible(false);
-					dCodeColumn.setVisible(false);
+				districtNameColumn.setVisible(false);
+				dCodeColumn.setVisible(false);
 //				}
-				
-				
+
 				if (provinceNameColumn != null) {
 					provinceNameColumn.setVisible(false);
 					pCodeColumn.setVisible(false);
 				}
 
-			}else if(formGeographyLevel.equals(CampaignFormMetaGeographyLevel.PROVINCE)) {
+			} else if (formGeographyLevel.equals(CampaignFormMetaGeographyLevel.PROVINCE)) {
 				if (clusterNameColumn != null) {
 					clusterNameColumn.setVisible(false);
 					clusterNumberColumn.setVisible(false);
 					ccodeColumn.setVisible(false);
 				}
-				
+
 				if (districtNameColumn != null) {
 					districtNameColumn.setVisible(false);
 					dCodeColumn.setVisible(false);
 				}
-				
-			}else if(formGeographyLevel.equals(CampaignFormMetaGeographyLevel.DISTRICT)) {
+
+			} else if (formGeographyLevel.equals(CampaignFormMetaGeographyLevel.DISTRICT)) {
 				if (clusterNameColumn != null) {
 					clusterNameColumn.setVisible(false);
 					clusterNumberColumn.setVisible(false);
 					ccodeColumn.setVisible(false);
 				}
-			}else {
+			} else {
 				clusterNameColumn.setVisible(true);
 				clusterNumberColumn.setVisible(true);
 				ccodeColumn.setVisible(true);
@@ -3038,85 +3439,76 @@ public class CampaignDataView extends VerticalLayout
 
 	}
 
-
-
 	public void addCustomColumn(String property, String caption, String fieldsType, List<MapperUtil> options) {
 		if (!property.toString().contains("readonly")) {
 			if (fieldsType != null && fieldsType.equalsIgnoreCase("image")) {
-			    Column<CampaignFormDataIndexDto> imageColumn = grid.addColumn(new ComponentRenderer<>(item -> {
-			        CampaignFormDataEntry formValue = item.getFormValues().stream()
-			                .filter(v -> property.equals(v.getId()))
-			                .findFirst()
-			                .orElse(null);
+				Column<CampaignFormDataIndexDto> imageColumn = grid.addColumn(new ComponentRenderer<>(item -> {
+					CampaignFormDataEntry formValue = item.getFormValues().stream()
+							.filter(v -> property.equals(v.getId())).findFirst().orElse(null);
 
-			        if (formValue == null || formValue.getValue() == null) {
-			            return new Span("No image");
-			        }
+					if (formValue == null || formValue.getValue() == null) {
+						return new Span("No image");
+					}
 
-			        Object val = formValue.getValue();
-			        String imageId = null;
+					Object val = formValue.getValue();
+					String imageId = null;
 
-			        // Single image (Map)
-			        if (val instanceof Map) {
-			            Map<?, ?> map = (Map<?, ?>) val;
-			            Object id = map.get("imageId");
-			            if (id != null) {
-			                imageId = id.toString();
-			            }
-			        }
-			        // Multiple images (List) — use the first one for the thumbnail
-			        else if (val instanceof List) {
-			            List<?> list = (List<?>) val;
-			            if (!list.isEmpty()) {
-			                Object first = list.get(0);
-			                if (first instanceof Map) {
-			                    Map<?, ?> map = (Map<?, ?>) first;
-			                    Object id = map.get("imageId");
-			                    if (id != null) {
-			                        imageId = id.toString();
-			                    }
-			                }
-			            }
-			        }
+					// Single image (Map)
+					if (val instanceof Map) {
+						Map<?, ?> map = (Map<?, ?>) val;
+						Object id = map.get("imageId");
+						if (id != null) {
+							imageId = id.toString();
+						}
+					}
+					// Multiple images (List) — use the first one for the thumbnail
+					else if (val instanceof List) {
+						List<?> list = (List<?>) val;
+						if (!list.isEmpty()) {
+							Object first = list.get(0);
+							if (first instanceof Map) {
+								Map<?, ?> map = (Map<?, ?>) first;
+								Object id = map.get("imageId");
+								if (id != null) {
+									imageId = id.toString();
+								}
+							}
+						}
+					}
 
-			        if (imageId == null || imageId.isEmpty()) {
-			            return new Span("No image");
-			        }
+					if (imageId == null || imageId.isEmpty()) {
+						return new Span("No image");
+					}
 
-			        StreamResource resource = buildImageResource(imageId);
-			        if (resource == null) {
-			            return new Span("No image");
-			        }
+					StreamResource resource = buildImageResource(imageId);
+					if (resource == null) {
+						return new Span("No image");
+					}
 
-			        Image thumbnail = new Image(resource, "Thumbnail");   // ✅ uses the StreamResource
-			        thumbnail.setWidth("40px");
-			        thumbnail.setHeight("40px");
-			        thumbnail.getStyle().set("object-fit", "cover");
-			        thumbnail.getStyle().set("cursor", "pointer");
-			        return thumbnail;
-			    }))
-			    .setHeader(caption)
-			    .setSortable(false)
-			    .setResizable(true)
-			    .setAutoWidth(true)
-			    .setTooltipGenerator(e -> "Image: " + caption);
+					Image thumbnail = new Image(resource, "Thumbnail"); // ✅ uses the StreamResource
+					thumbnail.setWidth("40px");
+					thumbnail.setHeight("40px");
+					thumbnail.getStyle().set("object-fit", "cover");
+					thumbnail.getStyle().set("cursor", "pointer");
+					return thumbnail;
+				})).setHeader(caption).setSortable(false).setResizable(true).setAutoWidth(true)
+						.setTooltipGenerator(e -> "Image: " + caption);
 
-			    if (exporter != null) {
-			        exporter.setExportValue(imageColumn, item -> exportImageNames(item, property));
-			    }
+				if (exporter != null) {
+					exporter.setExportValue(imageColumn, item -> exportImageNames(item, property));
+				}
 
-			    return;
+				return;
 			}
-			
-			
+
 			Grid.Column<CampaignFormDataIndexDto> column = grid.addColumn(e -> {
 				CampaignFormDataEntry formValue = e.getFormValues().stream().filter(v -> v.getId().equals(property))
 						.findFirst().orElse(null);
-				if (property.equalsIgnoreCase("villagecode")) {					
+				if (property.equalsIgnoreCase("villagecode")) {
 					return formValue.getValue().toString();
 				} else if (fieldsType != null && (fieldsType.equalsIgnoreCase("number"))) {
 					if (formValue != null) {
-						return removeTrailingDecimalFromString(formValue.getValue().toString());																// v.getId().equals(property)).findFirst().orElse(null));
+						return removeTrailingDecimalFromString(formValue.getValue().toString()); // v.getId().equals(property)).findFirst().orElse(null));
 					} else {
 						return "";
 					}
@@ -3149,66 +3541,60 @@ public class CampaignDataView extends VerticalLayout
 
 				} else if (fieldsType != null && fieldsType.equalsIgnoreCase("image")) {
 
-				    if (formValue == null || formValue.getValue() == null) {
-				        return new Span("No image");
-				    }
+					if (formValue == null || formValue.getValue() == null) {
+						return new Span("No image");
+					}
 
-				    Object val = formValue.getValue();
-				    String imageId = null;
+					Object val = formValue.getValue();
+					String imageId = null;
 
-				    // Single image (Map)
-				    if (val instanceof Map) {
-				        Map<?, ?> map = (Map<?, ?>) val;
-				        Object id = map.get("imageId");
-				        if (id != null) {
-				            imageId = id.toString();
-				        }
-				    }
-				    // Multiple images (List) — use the first for the thumbnail
-				    else if (val instanceof List) {
-				        List<?> list = (List<?>) val;
-				        if (!list.isEmpty()) {
-				            Object first = list.get(0);
-				            if (first instanceof Map) {
-				                Map<?, ?> map = (Map<?, ?>) first;
-				                Object id = map.get("imageId");
-				                if (id != null) {
-				                    imageId = id.toString();
-				                }
-				            }
-				        }
-				    }
+					// Single image (Map)
+					if (val instanceof Map) {
+						Map<?, ?> map = (Map<?, ?>) val;
+						Object id = map.get("imageId");
+						if (id != null) {
+							imageId = id.toString();
+						}
+					}
+					// Multiple images (List) — use the first for the thumbnail
+					else if (val instanceof List) {
+						List<?> list = (List<?>) val;
+						if (!list.isEmpty()) {
+							Object first = list.get(0);
+							if (first instanceof Map) {
+								Map<?, ?> map = (Map<?, ?>) first;
+								Object id = map.get("imageId");
+								if (id != null) {
+									imageId = id.toString();
+								}
+							}
+						}
+					}
 
-				    if (imageId == null || imageId.isEmpty()) {
-				        return new Span("No image");
-				    }
+					if (imageId == null || imageId.isEmpty()) {
+						return new Span("No image");
+					}
 
-				    StreamResource resource = buildImageResource(imageId);
-				    if (resource == null) {
-				        return new Span("No image");
-				    }
+					StreamResource resource = buildImageResource(imageId);
+					if (resource == null) {
+						return new Span("No image");
+					}
 
-				    Image thumbnail = new Image(resource, "Image thumbnail");   // ✅ fixed: use the StreamResource
-				    thumbnail.setWidth("40px");
-				    thumbnail.setHeight("40px");
-				    thumbnail.getStyle().set("object-fit", "cover");
-				    thumbnail.getElement().addEventListener("click", ex -> {
-				        // optional: open a larger preview here
-				    });
-				    return thumbnail;
+					Image thumbnail = new Image(resource, "Image thumbnail"); // ✅ fixed: use the StreamResource
+					thumbnail.setWidth("40px");
+					thumbnail.setHeight("40px");
+					thumbnail.getStyle().set("object-fit", "cover");
+					thumbnail.getElement().addEventListener("click", ex -> {
+						// optional: open a larger preview here
+					});
+					return thumbnail;
 
 				} else {
-				    return removeTrailingDecimal(
-				        e.getFormValues().stream().filter(v -> v.getId().equals(property)).findFirst().orElse(null));
+					return removeTrailingDecimal(e.getFormValues().stream().filter(v -> v.getId().equals(property))
+							.findFirst().orElse(null));
 				}
-			})
-					.setHeader(caption)
-					.setFooter(property)
-					.setSortProperty(property)
-					.setSortable(false)
-					.setResizable(true)
-					.setAutoWidth(true)
-					.setTooltipGenerator(e -> {
+			}).setHeader(caption).setFooter(property).setSortProperty(property).setSortable(false).setResizable(true)
+					.setAutoWidth(true).setTooltipGenerator(e -> {
 						CampaignFormDataEntry formValue = e.getFormValues().stream()
 								.filter(v -> v.getId().equals(property)).findFirst().orElse(null);
 						String value;
@@ -3229,86 +3615,80 @@ public class CampaignDataView extends VerticalLayout
 						}
 						return caption + " : " + value;
 					}).setClassNameGenerator(item -> "full-width-column");
-			
-			
-			if (fieldsType != null && fieldsType.equalsIgnoreCase("textbox")) {
-	            column.setAutoWidth(false);
-	            column.setFlexGrow(0);
-			    int width = Math.max(80, caption.length() * 8 + 30);
-			    column.setWidth(width + "px");
-//			    column.getStyle().set("white-space", "nowrap");
-			    } 
-		}
-		
 
+			if (fieldsType != null && fieldsType.equalsIgnoreCase("textbox")) {
+				column.setAutoWidth(false);
+				column.setFlexGrow(0);
+				int width = Math.max(80, caption.length() * 8 + 30);
+				column.setWidth(width + "px");
+//			    column.getStyle().set("white-space", "nowrap");
+			}
+		}
 
 	}
-	
-private StreamResource buildImageResource(String imageId) {
-    if (StringUtils.isBlank(imageId)) {
-        return null;
-    }
 
-    StreamResource resource = new StreamResource("image_" + imageId, () -> {
-        try {
-            byte[] bytes = FacadeProvider.getCampaignFormImageFacade().readImage(imageId);
-            if (bytes == null || bytes.length == 0) {
-                return new ByteArrayInputStream(new byte[0]);
-            }
-            return new ByteArrayInputStream(bytes);
-        } catch (IOException e) {
-            return new ByteArrayInputStream(new byte[0]);
-        }
-    });
+	private StreamResource buildImageResource(String imageId) {
+		if (StringUtils.isBlank(imageId)) {
+			return null;
+		}
 
-    try {
-        DocumentDto doc = FacadeProvider.getDocumentFacade().getDocumentByUuid(imageId);
-        if (doc != null && StringUtils.isNotBlank(doc.getMimeType())) {
-            resource.setContentType(doc.getMimeType());
-        } else {
-            resource.setContentType("image/jpeg");
-        }
-    } catch (Exception e) {
-        resource.setContentType("image/jpeg");
-    }
+		StreamResource resource = new StreamResource("image_" + imageId, () -> {
+			try {
+				byte[] bytes = FacadeProvider.getCampaignFormImageFacade().readImage(imageId);
+				if (bytes == null || bytes.length == 0) {
+					return new ByteArrayInputStream(new byte[0]);
+				}
+				return new ByteArrayInputStream(bytes);
+			} catch (IOException e) {
+				return new ByteArrayInputStream(new byte[0]);
+			}
+		});
 
-    return resource;
-}
+		try {
+			DocumentDto doc = FacadeProvider.getDocumentFacade().getDocumentByUuid(imageId);
+			if (doc != null && StringUtils.isNotBlank(doc.getMimeType())) {
+				resource.setContentType(doc.getMimeType());
+			} else {
+				resource.setContentType("image/jpeg");
+			}
+		} catch (Exception e) {
+			resource.setContentType("image/jpeg");
+		}
 
-	
+		return resource;
+	}
+
 	private String exportImageNames(CampaignFormDataIndexDto item, String property) {
-	    CampaignFormDataEntry formValue = item.getFormValues().stream()
-	            .filter(v -> property.equals(v.getId()))
-	            .findFirst().orElse(null);
-	    if (formValue == null || formValue.getValue() == null) {
-	        return "";
-	    }
-	    return extractImageValues(formValue.getValue()).stream()
-	            .map(img -> exportImageFileName(img, property))
-	            .filter(StringUtils::isNotBlank)
-	            .collect(Collectors.joining(", "));
+		CampaignFormDataEntry formValue = item.getFormValues().stream().filter(v -> property.equals(v.getId()))
+				.findFirst().orElse(null);
+		if (formValue == null || formValue.getValue() == null) {
+			return "";
+		}
+		return extractImageValues(formValue.getValue()).stream().map(img -> exportImageFileName(img, property))
+				.filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
 	}
 
 	private String imageDisplayName(CampaignFormImageValue img) {
-	    return StringUtils.firstNonBlank(img.getGeneratedFileName(), img.getOriginalFileName(), img.getImageId());
+		return StringUtils.firstNonBlank(img.getGeneratedFileName(), img.getOriginalFileName(), img.getImageId());
 	}
 
 	private List<CampaignFormImageValue> extractImageValues(Object val) {
-	    List<CampaignFormImageValue> result = new ArrayList<>();
-	    if (val instanceof Map) {
-	        CampaignFormImageValue v = CampaignFormImageValue.fromMap((Map<?, ?>) val);
-	        if (v != null) result.add(v);
-	    } else if (val instanceof List) {
-	        for (Object o : (List<?>) val) {
-	            if (o instanceof Map) {
-	                CampaignFormImageValue v = CampaignFormImageValue.fromMap((Map<?, ?>) o);
-	                if (v != null) result.add(v);
-	            }
-	        }
-	    }
-	    return result;
+		List<CampaignFormImageValue> result = new ArrayList<>();
+		if (val instanceof Map) {
+			CampaignFormImageValue v = CampaignFormImageValue.fromMap((Map<?, ?>) val);
+			if (v != null)
+				result.add(v);
+		} else if (val instanceof List) {
+			for (Object o : (List<?>) val) {
+				if (o instanceof Map) {
+					CampaignFormImageValue v = CampaignFormImageValue.fromMap((Map<?, ?>) o);
+					if (v != null)
+						result.add(v);
+				}
+			}
+		}
+		return result;
 	}
-	
 
 	public void addCustomColumn(String property, String caption, String fieldsType) {
 		if (!property.toString().contains("readonly")) {
@@ -3399,8 +3779,6 @@ private StreamResource buildImageResource(String imageId) {
 		countRowItems.setText(newText);
 		countRowItems.setId("rowCount");
 	}
-
-	 
 
 	public void languageHandler() {
 

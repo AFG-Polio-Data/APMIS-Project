@@ -65,6 +65,9 @@ public class CampaignFormData extends PseudonymizableAdo {
     public static final String ISVERIFIED = "isverified";
     public static final String ISPUBLISHED = "ispublished";
 
+    public static final String ISVALIDATED = "isvalidated";
+
+
 
     @Column(name = "formValues")
     private String formValuesJson;
@@ -121,6 +124,8 @@ public class CampaignFormData extends PseudonymizableAdo {
     @Column(name = "ispublished")
     private Boolean ispublished;
 
+    @Column(name = "isvalidated")
+    private Boolean isvalidated;
 
     /**
      * JsonRawValue annotation is used to handle this differently when merging data
@@ -289,6 +294,14 @@ public class CampaignFormData extends PseudonymizableAdo {
 
     public void setIsverified(Boolean isverified) {
         this.isverified = isverified;
+    }
+
+    public Boolean getIsvalidated() {
+        return isvalidated;
+    }
+
+    public void setIsvalidated(Boolean isvalidated) {
+        this.isvalidated = isvalidated;
     }
 
     public void setFormCategory(String formCategory) {

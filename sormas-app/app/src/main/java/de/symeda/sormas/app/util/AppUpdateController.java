@@ -123,6 +123,7 @@ public class AppUpdateController {
 
 		// retrieve the app version but returns the same value
 		if (appUrl == null || appUrl.isEmpty() || version == null) {
+			System.out.println(appUrl + "appurl " + version + "version");
 			throw new IllegalArgumentException("This method may not be called with appUrl or version set to null or an empty appUrl.");
 		}
 

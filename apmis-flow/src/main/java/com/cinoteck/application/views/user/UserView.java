@@ -968,7 +968,7 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		                    closeButton.getElement().setAttribute("aria-label", "Close");
 		                    closeButton.addClickListener(e -> notification.close());
 		                    
-		                    Paragraph text = new Paragraph("Access Denied: You cannot edit users at or above your jurisdiction level.");
+		                    Paragraph text = new Paragraph( "Access Denied: Only users assigned to lower Geographical jurisdiction levels can be edited.");
 		                    HorizontalLayout noteLayout = new HorizontalLayout(text, closeButton);
 		                    noteLayout.setAlignItems(Alignment.CENTER);
 		                    

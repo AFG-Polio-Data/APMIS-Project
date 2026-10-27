@@ -11781,6 +11781,38 @@ ALTER TABLE public.campaignformdata_history ALTER COLUMN region_id DROP NOT NULL
 INSERT INTO schema_version (version_number, comment) VALUES (499, 'Updating CampaignFormData_History Table to recieve null district and province values');
 
 
+alter table campaignformdata add column isvalidated boolean not null default false;
+
+CREATE OR REPLACE FUNCTION public.validate_data_byphase_after()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    UPDATE campaignFormData
+    SET isvalidated = CASE
+        WHEN EXISTS (
+            SELECT 1 FROM campaignformmeta 
+            WHERE campaignFormData.campaignformmeta_id = campaignformmeta.id  
+              AND campaignformmeta.formtype = 'intra-campaign'
+        )
+        THEN false
+        ELSE true
+    END
+    WHERE campaignFormData.id = NEW.id;
+
+    RETURN NEW;
+END;
+$function$
+;
+
+
+create trigger validate_data_trigger after
+insert
+    on
+    public.campaignformdata for each row execute function validate_data_byphase_after();
+
+INSERT INTO schema_version (version_number, comment) VALUES (500, 'Updating CampaignFormData Table to recieve Validate option');
+
 
 
 

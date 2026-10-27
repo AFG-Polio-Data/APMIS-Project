@@ -68,6 +68,9 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 	Button unVerifyButton;
 	Button publishButton;
 	Button unPublishButton;
+	Button unValidateButton;
+	Button validateButton;
+
 	boolean dataPublishNotificationCheck = false;
 
 	private final UserProvider usr = new UserProvider();
@@ -286,11 +289,16 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 
 		verifyButton = new Button(I18nProperties.getCaption("Verify Data"));
 		publishButton = new Button(I18nProperties.getCaption(" Publish Data"));
+		validateButton = new Button(I18nProperties.getCaption(" Validate Data"));
+
 		Icon verifyButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
 		verifyButton.setIcon(verifyButtonIcon);
 
 		Icon publishButtonIcon = new Icon(VaadinIcon.PRINT);
 		publishButton.setIcon(publishButtonIcon);
+		
+		Icon validateButtonnIcon = new Icon(VaadinIcon.PRINT);
+		validateButton.setIcon(validateButtonnIcon);
 
 		unVerifyButton = new Button(I18nProperties.getCaption("Un-Verify Data"));
 		Icon unVerifyButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
@@ -299,6 +307,10 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 		unPublishButton = new Button(I18nProperties.getCaption("Un-Publish Data"));
 		Icon unPublishButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
 		unPublishButton.setIcon(unPublishButtonIcon);
+		
+		unValidateButton = new Button(I18nProperties.getCaption("Un-Validate Data"));
+		Icon unValidateButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
+		unValidateButton.setIcon(unValidateButtonIcon);
 
 		if (usr.getUser().getUsertype() == UserType.WHO_USER) {
 
@@ -321,11 +333,27 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 							}
 
 						}
+
+						
 					} else {
 
 					}
 
 				}
+			} 
+			
+			if (usr.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) 
+					|| usr.getUser().getUserRoles().contains(UserRole.EDITOR_USER) ) {
+				
+				System.out.println(campaignFormMetaReferenceDto.getFormType() + "campaignFormMetaReferenceDto.getFormType()");
+				if (campaignFormMetaReferenceDto.getFormType().equalsIgnoreCase("intra-campaign")) {
+				if(!FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(uuidForm)) {
+					dialog.getFooter().add(validateButton);
+				}else {
+					dialog.getFooter().add(unValidateButton);
+				}
+				}
+				
 			}
 
 		}
@@ -361,6 +389,22 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				grid.getDataProvider().refreshAll();
 			}
 		});
+		
+		validateButton.addClickListener(e -> {
+			try {
+				List<String> uuidList = new ArrayList<>();
+				uuidList.add(uuidForm);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, false);
+
+			} catch (Exception exception) {
+				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Validate CampaignData ");
+			} finally {
+
+				Notification.show("Data validated successfully");
+				publishButton.setVisible(false);
+				grid.getDataProvider().refreshAll();
+			}
+		});
 
 		unVerifyButton.addClickListener(e -> {
 			try {
@@ -381,7 +425,7 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				Notification.show("Data un-verified successfully");
 				unVerifyButton.setVisible(false);
 				grid.getDataProvider().refreshAll();
-//					dialog.getFooter().add(verifyButton);
+//					dialog.getFooter().add(verifyButton)
 
 			}
 		});
@@ -391,6 +435,24 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				List<String> uuidList = new ArrayList<>();
 				uuidList.add(uuidForm);
 				FacadeProvider.getCampaignFormDataFacade().publishCampaignData(uuidList, true);
+
+			} catch (Exception exception) {
+				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Un-Publish CampaignData ");
+			} finally {
+
+				Notification.show("Data un-published successfully");
+				unPublishButton.setVisible(false);
+				grid.getDataProvider().refreshAll();
+//					dialog.getFooter().add(verifyButton);
+
+			}
+		});
+		
+		unValidateButton.addClickListener(e -> {
+			try {
+				List<String> uuidList = new ArrayList<>();
+				uuidList.add(uuidForm);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, true);
 
 			} catch (Exception exception) {
 				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Un-Publish CampaignData ");

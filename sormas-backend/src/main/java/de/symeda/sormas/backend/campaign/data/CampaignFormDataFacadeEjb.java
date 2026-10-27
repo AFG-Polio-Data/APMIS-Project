@@ -244,6 +244,8 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 		target.setRecordversion(source.getRecordversion());
 		target.setIspublished(source.isIspublished());
 		target.setIsverified(source.isIsverified());
+		target.setValidated(source.isIsvalidated());
+
 
 		return target;
 	}
@@ -269,6 +271,7 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 //		target.setRecordgroupuuid(source.getRecordgroupuuid());
 		target.setIspublished(source.isIspublished());
 		target.setIsverified(source.isIsverified());
+		target.setIsvalidated(source.isValidated());
 		target.setRecordversion(source.getRecordversion());
 		enrichImagePreviewUrls(target);
 
@@ -296,6 +299,8 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 		target.setArchived(source.isArchived());
 		target.setIspublished(source.isIspublished());
 		target.setIsverified(source.isIsverified());
+		target.setIsvalidated(source.isValidated());
+
 //		target.setRecordgroupuuid(source.getRecordgroupuuid());
 		target.setRecordversion(source.getRecordversion());
 		enrichImagePreviewUrls(target);
@@ -860,7 +865,7 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 				communityJoin.get(Community.CLUSTER_NUMBER), communityJoin.get(Community.EXTERNAL_ID),
 				root.get(CampaignFormData.FORM_DATE), campaignFormMetaJoin.get(CampaignFormMeta.FORM_TYPE),
 				root.get(CampaignFormData.SOURCE), userJoin.get(User.USER_NAME), root.get(CampaignFormData.ISVERIFIED),
-				root.get(CampaignFormData.ISPUBLISHED), root.get(CampaignFormData.RECORDVERSION),
+				root.get(CampaignFormData.ISPUBLISHED), root.get(CampaignFormData.ISVALIDATED), root.get(CampaignFormData.RECORDVERSION),
 				root.get(CampaignFormData.CHANGE_DATE));
 
 		Predicate filter = CriteriaBuilderHelper.and(cb,
@@ -925,11 +930,15 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 					break;
 
 				case CampaignFormDataIndexDto.ISVERIFIED:
-					expression = campaignFormMetaJoin.get(CampaignFormData.ISVERIFIED);
+					expression = root.get(CampaignFormData.ISVERIFIED);
 					break;
 
 				case CampaignFormDataIndexDto.ISPUBLISHED:
-					expression = campaignFormMetaJoin.get(CampaignFormData.ISPUBLISHED);
+					expression = root.get(CampaignFormData.ISPUBLISHED);
+					break;
+					
+				case CampaignFormDataIndexDto.ISVALIDATED:
+					expression = root.get(CampaignFormData.ISVALIDATED);
 					break;
 
 				case CampaignFormDataIndexDto.CREATED_BY:
@@ -3696,6 +3705,23 @@ if(criteria.getUserLanguage() != null) {
 	}
 	
 	@Override
+	public void validateCampaignData(List<String> uuids, boolean isUnValidatingAction) {
+				for(String uuidx : uuids) {
+					
+					if(isUnValidatingAction) {
+						System.out.println("unvalidateeee");
+						campaignFormDataService.unValidateData(uuidx);
+					}else {
+						System.out.println("validateeeee");
+
+						campaignFormDataService.validateData(uuidx);
+					}
+								
+		}
+		
+	}
+	
+	@Override
 	public  void updateReassignedDistrictData(String uuid) {
 		// TODO Auto-generated method stub
 		
@@ -3736,6 +3762,27 @@ if(criteria.getUserLanguage() != null) {
 //						cb.equal(from.get(AbstractDomainObject.UUID), campaignFormDataUuid))
 						);
 				cq.select(from.get(CampaignFormData.ISPUBLISHED));
+				System.out.println("resultData - "+ SQLExtractor.from(em.createQuery(cq)));
+				boolean count = em.createQuery(cq).getSingleResult();
+				
+				
+				
+				return count;
+		
+	}
+	
+	@Override
+	public boolean getValidatedStatus(String uuid) {
+
+				
+				CriteriaBuilder cb = em.getCriteriaBuilder();
+				CriteriaQuery<Boolean> cq = cb.createQuery(Boolean.class);
+				Root<CampaignFormData> from = cq.from(CampaignFormData.class);
+
+				cq.where(cb.equal(from.get(CampaignFormData.UUID), uuid)
+//						cb.equal(from.get(AbstractDomainObject.UUID), campaignFormDataUuid))
+						);
+				cq.select(from.get(CampaignFormData.ISVALIDATED));
 				System.out.println("resultData - "+ SQLExtractor.from(em.createQuery(cq)));
 				boolean count = em.createQuery(cq).getSingleResult();
 				

@@ -75,6 +75,8 @@ public class CampaignFormDataDtoHelper extends AdoDtoHelper<CampaignFormData, Ca
 		target.setRecordversion(source.getRecordversion());
 		target.setIspublished(source.isIspublished());
 		target.setIsverified(source.isIsverified());
+		target.setIsvalidated(source.isIsvalidated());
+
 
 
 	}
@@ -94,5 +96,6 @@ public class CampaignFormDataDtoHelper extends AdoDtoHelper<CampaignFormData, Ca
 		target.setRecordversion(source.getRecordversion());
 		target.setIspublished(source.getIspublished());
 		target.setIsverified(source.getIsverified());
+		target.setIsvalidated(source.getIsvalidated());
 	}
 }
