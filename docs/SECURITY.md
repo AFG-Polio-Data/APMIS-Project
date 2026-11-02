@@ -1,30 +1,36 @@
 # Security Policies and Procedures
 
-This document outlines security procedures and general policies for the SORMAS
+This document outlines security procedures and general policies for the APMIS
 project.
 
 - [Security Policies and Procedures](#security-policies-and-procedures)
   - [Reporting a Security Bug](#reporting-a-security-bug)
   - [Disclosure Policy](#disclosure-policy)
+  - [Secret Scanning](#secret-scanning)
   - [Comments on this Policy](#comments-on-this-policy)
 
-If you want to report a bug which is not security sensible, please [submit an issue](https://github.com/hzi-braunschweig/SORMAS-Project/blob/development/CONTRIBUTING.md#submitting-an-issue).
+If you want to report a bug which is not security sensible, please [submit an issue](https://github.com/hzi-braunschweig/APMIS-Project/blob/development/CONTRIBUTING.md#submitting-an-issue).
 
 ## Reporting a Security Bug
 
-Our team and community take all security bugs in SORMAS seriously.
-Thank you for improving the security of SORMAS. We appreciate your efforts and
+Our team and community take all security bugs in APMIS seriously.
+Thank you for improving the security of APMIS. We appreciate your efforts and
 responsible disclosure and will make every effort to acknowledge your
 contributions.
-Unfortunately, SORMAS does not offer a paid bug bounty programme or other forms of compensation.
+Unfortunately, APMIS does not offer a paid bug bounty programme or other forms of compensation.
 
-Report security bugs by emailing at **security@sormas.org**.
 
 We will acknowledge your email and follow up with a response within 10 business days, or explain why a reply may take longer. The response will indicate the next steps in handling your report.
 After the initial reply to your report, the security team will endeavor to keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
 
 Report security bugs in third-party modules to the person or team maintaining
 the module.
+
+
+## Secret Scanning
+
+Pull requests are scanned for committed secrets with gitleaks in reporting mode.
+See [Secret Scanning](SECRET_SCANNING.md) for where findings are published and how to triage them.
 
 
 ## Disclosure Policy

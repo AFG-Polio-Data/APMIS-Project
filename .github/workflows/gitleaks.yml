@@ -1,0 +1,147 @@
+# Secret scanning in reporting mode.
+# Findings are published to the job summary and uploaded as an artifact, but never fail the build.
+# Triage guidance: docs/SECRET_SCANNING.md
+
+name: Secret Scanning
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full_history:
+        description: Scan the whole git history instead of the latest commit
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitleaks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITLEAKS_VERSION: 8.28.0
+
+jobs:
+  gitleaks:
+    name: gitleaks / report only
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          # The full history of the pull request is needed to scan its commits.
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks version
+
+      - name: Determine commits to scan
+        id: range
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FULL_HISTORY: ${{ inputs.full_history }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "log-opts=${BASE_SHA}..${HEAD_SHA}" >> "$GITHUB_OUTPUT"
+          elif [ "$FULL_HISTORY" = "true" ]; then
+            echo "log-opts=--all" >> "$GITHUB_OUTPUT"
+          else
+            echo "log-opts=-1 HEAD" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run gitleaks (report only)
+        id: scan
+        # Findings must not block pull requests while the false-positive rate is being measured.
+        continue-on-error: true
+        run: |
+          ./gitleaks detect \
+            --source . \
+            --config .gitleaks.toml \
+            --log-opts "${{ steps.range.outputs.log-opts }}" \
+            --report-format json \
+            --report-path gitleaks-report.json \
+            --redact \
+            --no-banner \
+            --exit-code 0
+
+      - name: Publish findings to run summary
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          outcome = os.environ.get("SCAN_OUTCOME", "unknown")
+          report_path = pathlib.Path("gitleaks-report.json")
+
+          lines = [
+              "## Secret scanning (gitleaks)",
+              "",
+              "Reporting mode: findings are advisory and never fail this workflow. "
+              "See `docs/SECRET_SCANNING.md` for triage guidance.",
+              "",
+          ]
+
+          def cell(value):
+              return str(value).replace("|", "\\|").replace("`", "'").replace("\n", " ")
+
+          try:
+              has_report = report_path.exists() and report_path.stat().st_size > 0
+              findings = json.loads(report_path.read_text()) if has_report else []
+          except json.JSONDecodeError:
+              findings = None
+
+          if outcome != "success" or findings is None:
+              lines.append(
+                  "> gitleaks did not complete successfully. "
+                  "Check the `Run gitleaks (report only)` step for details."
+              )
+          elif not findings:
+              lines.append("No secrets detected in the scanned commits.")
+          else:
+              lines.extend([
+                  f"**{len(findings)} potential secret(s) detected.** Triage each finding and record "
+                  "the outcome; confirmed false positives belong in `.gitleaks.toml`.",
+                  "",
+                  "| Rule | File | Line | Commit | Redacted match |",
+                  "| --- | --- | --- | --- | --- |",
+              ])
+              for finding in findings[:50]:
+                  lines.append("| {} | {} | {} | {} | {} |".format(
+                      cell(finding.get("RuleID", "")),
+                      cell(finding.get("File", "")),
+                      cell(finding.get("StartLine", "")),
+                      cell((finding.get("Commit") or "")[:7]),
+                      cell(finding.get("Match", "")),
+                  ))
+              if len(findings) > 50:
+                  lines.extend([
+                      "",
+                      f"... {len(findings) - 50} more finding(s) in the `gitleaks-report` artifact.",
+                  ])
+
+          with open(summary_path, "a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines) + "\n")
+          PY
+
+      - name: Upload findings report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: ignore
+          retention-days: 30

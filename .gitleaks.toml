@@ -1,0 +1,13 @@
+# gitleaks configuration for the APMIS repository.
+# Extends the upstream default rule set; see docs/SECRET_SCANNING.md for triage guidance.
+[extend]
+useDefault = true
+
+# Global allowlist for reviewed false positives.
+# Prefer narrowing entries to a path or a placeholder pattern over disabling a rule,
+# and only add an entry after the finding has been triaged. An allowlist must contain
+# at least one entry, so the table stays commented out until the first triaged finding.
+# [allowlist]
+# description = "Repository-specific exceptions"
+# paths = ['''example/path/to/fixture\.json''']
+# regexes = ['''EXAMPLE_PLACEHOLDER_TOKEN''']
