@@ -1962,7 +1962,12 @@ public class CampaignDataView extends VerticalLayout
 				}
 			}
 
-			filterdList.sort(Comparator.comparing(CampaignFormMetaReferenceDto::getCaption));
+			filterdList.sort(
+				    Comparator.comparing(
+				        CampaignFormMetaReferenceDto::getCaption,
+				        Comparator.nullsLast(String::compareToIgnoreCase)
+				    )
+				);
 
 			newForm.setItems(filterdList);
 			importFormData.setItems(filterdList);
