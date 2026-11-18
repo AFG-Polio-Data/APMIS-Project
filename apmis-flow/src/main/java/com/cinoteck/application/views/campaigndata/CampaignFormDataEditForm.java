@@ -342,6 +342,8 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				}
 			} 
 			
+			
+			if(openData) {
 			if (usr.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) 
 					|| usr.getUser().getUserRoles().contains(UserRole.EDITOR_USER) ) {
 				
@@ -354,6 +356,8 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				}
 				}
 				
+			}
+			
 			}
 
 		}
@@ -394,14 +398,25 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 			try {
 				List<String> uuidList = new ArrayList<>();
 				uuidList.add(uuidForm);
-				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, false);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, true);
+				
+				for (String eachUuid : uuidList) {
+					if (FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(eachUuid)) {
+						UserActivitySummaryDto userActivitySummaryDto = new UserActivitySummaryDto();
+						userActivitySummaryDto.setActionModule("Campaign Data");
+						userActivitySummaryDto.setAction("Validate Data: " + campaignFormMetaDto.getFormName()
+								+ " in " + campaignReferenceDto.getCaption());
+						userActivitySummaryDto.setCreatingUser_string(usr.getUser().getUserName());
+						FacadeProvider.getUserFacade().saveUserActivitySummary(userActivitySummaryDto);
+					}
+				}
 
 			} catch (Exception exception) {
 				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Validate CampaignData ");
 			} finally {
 
 				Notification.show("Data validated successfully");
-				publishButton.setVisible(false);
+				validateButton.setVisible(false);
 				grid.getDataProvider().refreshAll();
 			}
 		});
@@ -452,19 +467,32 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 			try {
 				List<String> uuidList = new ArrayList<>();
 				uuidList.add(uuidForm);
-				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, true);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, false);
+				
+				for (String eachUuid : uuidList) {
+					if (!FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(eachUuid)) {
+						UserActivitySummaryDto userActivitySummaryDto = new UserActivitySummaryDto();
+						userActivitySummaryDto.setActionModule("Campaign Data");
+						userActivitySummaryDto.setAction("Un-Validate Data: " + campaignFormMetaDto.getFormName()
+								+ " in " + campaignReferenceDto.getCaption());
+						userActivitySummaryDto.setCreatingUser_string(usr.getUser().getUserName());
+						FacadeProvider.getUserFacade().saveUserActivitySummary(userActivitySummaryDto);
+					}
+				}
+				
 
 			} catch (Exception exception) {
 				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Un-Publish CampaignData ");
 			} finally {
 
-				Notification.show("Data un-published successfully");
-				unPublishButton.setVisible(false);
+				Notification.show("Data un-validated successfully");
+				unValidateButton.setVisible(false);
 				grid.getDataProvider().refreshAll();
 //					dialog.getFooter().add(verifyButton);
 
 			}
 		});
+		
 
 		saveAndContinueButton.addClickListener(e -> {
 			boolean isFormValueSaved = campaignFormBuilder.saveFormValues();

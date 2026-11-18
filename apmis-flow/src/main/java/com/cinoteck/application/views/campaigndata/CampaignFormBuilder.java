@@ -4714,6 +4714,7 @@ public class CampaignFormBuilder extends VerticalLayout {
 //					dataDto.setRecordgroupuuid(dataDto.getRecordgroupuuid());
 					dataDto.setRecordversion(incrementedVersion);
 					dataDto.setFormValues(entries);
+					dataDto.setFormType(campaignFormMeta.getFormType());
 
 					boolean proceedWithUnPublishaandUnVerify = false;
 					try {
@@ -4887,6 +4888,8 @@ public class CampaignFormBuilder extends VerticalLayout {
 					dataDto.setSource("WEB");
 //						dataDto.setRecordgroupuuid(dataDto.getUuid());
 					dataDto.setRecordversion(1L);
+					dataDto.setFormType(campaignFormMeta.getFormType());
+
 //						if (dataDto.getFormType())
 					try {
 						dataDto = FacadeProvider.getCampaignFormDataFacade().saveCampaignFormData(dataDto);

@@ -360,7 +360,6 @@ public class PopulationDataFacadeEjb implements PopulationDataFacade {
 	public List<PopulationDataDto> getAllPopulationDataByLimit(Integer fetchFromIndex, Integer fetchSize) {
 		
 	    List<PopulationDataDto> resultData = new ArrayList<>();
-
 	    
 		if (fetchSize > 5000 || fetchSize < 0 || fetchFromIndex < 0) {
 			return resultData;

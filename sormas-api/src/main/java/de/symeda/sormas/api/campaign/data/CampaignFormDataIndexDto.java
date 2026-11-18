@@ -219,9 +219,12 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.creatingUser = creatingUser;
 		this.isverified = isverified;
 		this.ispublished = ispublished;
+		this.isvalidated = isvalidated;
 		this.recordversion = recordversion;
 		this.changeDate = changeDate;
 	}
+	
+	
 
 	public CampaignFormDataIndexDto(String uuid, String campaign, String form, Object formValues, String area,
 			Long rcode, String region, Long pcode, String district, Long dcode, String community, Integer clusternumber,
@@ -270,6 +273,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 	}
 	
 //*
+	
+	//getByTimelinessAnalysis
 	public CampaignFormDataIndexDto(String form, String uuid, Long rcode, String campaign, String creatingUser,
 			String area, String region, String district, Long analysis_a, Long analysis_b) {
 		this.form = form;
@@ -284,10 +289,9 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.analysis_b = analysis_b;
 	}
 
+	//getCreatingUsersUserType
 	public CampaignFormDataIndexDto(String creatingUserType) {
-
 		this.creatingUserType = creatingUserType;
-
 	}
 
 	// FLW Contructor
@@ -305,6 +309,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.error_status = "Error: Duplicate Tazkira number";
 	}
 	
+	
+	//getFlwDuplicateErrorAnalysis
 	public CampaignFormDataIndexDto(String area, String region, String district,
 			String source, String creatingUser, String personTitle, String error_status) {
 		this.area = area;
@@ -321,6 +327,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	
 	//*
+	
+	//getByCompletionAnalysisNew
 	public CampaignFormDataIndexDto(String area, String region, String district, String community, Integer clusternumer,
 			// Long clusternumber_,
 			Long ccode, Long analysis_a, Long analysis_b, Long analysis_c, Long analysis_d
@@ -397,6 +405,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 	
 	
 	//*
+	
+	//getByCompletionAnalysisAdmin
 	public CampaignFormDataIndexDto(
 			String area, String region, String district, String community, 
 			Integer clusternumer,

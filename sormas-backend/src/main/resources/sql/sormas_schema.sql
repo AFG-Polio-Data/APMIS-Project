@@ -11787,24 +11787,52 @@ CREATE OR REPLACE FUNCTION public.validate_data_byphase_after()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
+DECLARE
+    v_formtype varchar(255);
 BEGIN
-    UPDATE campaignFormData
-    SET isvalidated = CASE
-        WHEN EXISTS (
-            SELECT 1 FROM campaignformmeta 
-            WHERE campaignFormData.campaignformmeta_id = campaignformmeta.id  
-              AND campaignformmeta.formtype = 'intra-campaign'
-        )
-        THEN false
-        ELSE true
-    END
-    WHERE campaignFormData.id = NEW.id;
+    -- Get the form type from campaignformmeta using
+    -- campaignformdata.campaignformmeta_id as the reference.
+    SELECT cfm.formtype
+    INTO v_formtype
+    FROM public.campaignformmeta cfm
+    WHERE cfm.id = NEW.campaignformmeta_id;
+
+    IF TG_OP = 'INSERT' THEN
+
+        -- Set initial validation status based on metadata phase.
+        IF v_formtype = 'intra-campaign' THEN
+            NEW.isvalidated := FALSE;
+        ELSE
+            NEW.isvalidated := TRUE;
+        END IF;
+
+        RETURN NEW;
+    END IF;
+
+    IF TG_OP = 'UPDATE' THEN
+
+        -- Preserve validation for pre/post-campaign records.
+        IF v_formtype IS DISTINCT FROM 'intra-campaign' THEN
+            NEW.isvalidated := OLD.isvalidated;
+
+        -- Preserve validated intra-campaign records only
+        -- when the update originates from mobile.
+        ELSIF OLD.isvalidated IS TRUE
+              AND LOWER(COALESCE(NEW.source, '')) = 'mobile' THEN
+            NEW.isvalidated := TRUE;
+
+        -- Other intra-campaign updates require revalidation.
+        ELSE
+            NEW.isvalidated := FALSE;
+        END IF;
+
+        RETURN NEW;
+    END IF;
 
     RETURN NEW;
 END;
 $function$
 ;
-
 
 create trigger validate_data_trigger after
 insert

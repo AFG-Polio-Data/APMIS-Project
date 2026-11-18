@@ -71,17 +71,17 @@ public class CampaignFormDataListFragment extends PagedBaseListFragment<Campaign
     public void onListItemClick(View view, int position, Object item) {
         CampaignFormData campaignFormData = (CampaignFormData) item;
 
-        if (intraCampaignsCategories.contains(((CampaignFormData) item).getCampaignFormMeta().getFormCategory())) {
-            if(((CampaignFormData) item).getIsvalidated()){
-                showCustomDialog(getContext(),
-                        "Data Entry Error",
-                        "Validated Record. Please contact System Administrator to update record.");
-            }else {
-                CampaignFormDataReadActivity.startActivity(getContext(), campaignFormData.getUuid(), false);
-            }
-        }else{
+//        if (intraCampaignsCategories.contains(((CampaignFormData) item).getCampaignFormMeta().getFormCategory())) {
+//            if(((CampaignFormData) item).getIsvalidated()){
+//                showCustomDialog(getContext(),
+//                        "Data Entry Error",
+//                        "Validated Record. Please contact System Administrator to update record.");
+//            }else {
+//                CampaignFormDataReadActivity.startActivity(getContext(), campaignFormData.getUuid(), false);
+//            }
+//        }else{
             CampaignFormDataReadActivity.startActivity(getContext(), campaignFormData.getUuid(), false);
-        }
+//        }
     }
 
 

@@ -26,6 +26,21 @@
         android:supportsRtl="true"
         android:theme="@style/SormasTheme">
 
+        <receiver
+            android:name=".util.AppUpdateRelaunchReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+
+
         <uses-library android:name="android.test.runner"
             android:required="false" />
 

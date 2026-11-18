@@ -3519,10 +3519,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 									"END"
 					);
 
-					getDao(CampaignFormMeta.class).executeRaw(
-							"ALTER TABLE campaignFormMeta DROP COLUMN districtentry"
-					);
-
 				case 360:
 
 					currentVersion = 360;

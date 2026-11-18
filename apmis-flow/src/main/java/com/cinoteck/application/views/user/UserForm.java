@@ -161,6 +161,9 @@ public class UserForm extends FormLayout {
 			List<DistrictReferenceDto> districts, UserDto user, boolean editmode) {
 
 		this.user = user;
+		
+
+		
 		addClassName("contact-form");
 		HorizontalLayout hor = new HorizontalLayout();
 		Icon vaadinIcon = new Icon(VaadinIcon.ARROW_CIRCLE_LEFT_O);
@@ -188,6 +191,9 @@ public class UserForm extends FormLayout {
 
 	@SuppressWarnings("unchecked")
 	public void configureFields(UserDto user) {
+		JurisdictionLevel currentJurisdiction = UserRole.getJurisdictionLevel(userProvider.getUser().getUserRoles());
+
+		
 
 		pInfo = new H2(I18nProperties.getString(Strings.headingPersonData));
 		this.setColspan(pInfo, 2);
@@ -246,11 +252,28 @@ public class UserForm extends FormLayout {
 		binder.bind(districtMulti, userx -> userx.getDistricts(),
 				(userx, userOrganisation) -> userx.setDistricts(userOrganisation));
 
-		districtMulti.setVisible(true);
+		districtMulti.setVisible(false);
 
 		this.binder.forField(this.clusterNo);
 		binder.bind(clusterNo, userx -> userx.getCommunity(),
 				(userx, userOrganisation) -> userx.setCommunity(userOrganisation));
+
+		// Sync the selected cluster numbers onto the bean's communitynos (registered once)
+		clusterNo.addValueChangeListener(ex -> {
+			@SuppressWarnings("unchecked")
+			Set<CommunityReferenceDto> selected = (Set<CommunityReferenceDto>) ex.getValue();
+			if (selected != null && !selected.isEmpty()) {
+				Set<String> selectedClusterNumbers = new HashSet<>();
+				for (CommunityReferenceDto community : selected) {
+					if (community.getNumber() != null) {
+						selectedClusterNumbers.add(community.getNumber().toString());
+					}
+				}
+				user.setCommunitynos(selectedClusterNumbers);
+			} else {
+				user.setCommunitynos(new HashSet<>());
+			}
+		});
 
 		roles = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
 		roles.remove(UserRole.BAG_USER);
@@ -292,6 +315,7 @@ public class UserForm extends FormLayout {
 		userRoles.addValueChangeListener(e -> {
 			updateFieldsByUserRole(e.getValue());
 			validateUserRoles();
+			
 		});
 
 		ComboBox<UserType> userTypes = new ComboBox<UserType>();
@@ -330,6 +354,8 @@ public class UserForm extends FormLayout {
 				}
 			}
 		});
+		
+	
 
 		province.setItemLabelGenerator(RegionReferenceDto::getCaption);
 		province.addValueChangeListener(e -> {
@@ -434,59 +460,23 @@ public class UserForm extends FormLayout {
 
 		district.setItemLabelGenerator(DistrictReferenceDto::getCaption);
 		district.addValueChangeListener(e -> {
+			Set<UserRole> selectedRoles = userRoles.getValue();
+			boolean isObserver = selectedRoles != null && selectedRoles.contains(UserRole.DISTRICT_OBSERVER);
+			JurisdictionLevel selectedLevel = (selectedRoles == null || selectedRoles.isEmpty()) ? null
+					: UserRole.getJurisdictionLevel(selectedRoles);
 
-			if (!isDistrictMulti && !userRoles.getValue().contains(UserRole.DISTRICT_OBSERVER)) {
+			if (!isDistrictMulti && !isObserver) {
 				DistrictReferenceDto districtDto = (DistrictReferenceDto) e.getValue();
 
 				if (e.getValue() != null) {
-					clusterNo.setVisible(true);
-					this.setColspan(clusterNo, 2);
-					communities = FacadeProvider.getCommunityFacade().getAllActiveByDistrict(e.getValue().getUuid());
-
-					clusterNo.setLabel(I18nProperties.getCaption(Captions.clusterNumber));
-
-					if (districtDto != null) {
-
-						List<CommunityReferenceDto> items = FacadeProvider.getCommunityFacade()
-								.getAllActiveByDistrict(districtDto.getUuid());
-						for (CommunityReferenceDto item : items) {
-							if (item.getNumber() == null) {
-
-								Notification notification = new Notification();
-								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-								notification.setPosition(Position.MIDDLE);
-								Button closeButton = new Button(new Icon("lumo", "cross"));
-								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> notification.close());
-
-								Paragraph text = new Paragraph(
-										"Cluster Number cannot be empty, please contact support");
-								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
-								layout.setAlignItems(Alignment.CENTER);
-								notification.add(layout);
-								notification.open();
-							}
-
-							item.setCaption(item.getNumber() != null ? item.getNumber().toString() : null);
-						}
-						Collections.sort(items, CommunityReferenceDto.clusternumber);
-
-						clusterNo.setItems(items);
-						clusterNo.getChildren().forEach(checkbox -> {
-							checkbox.getElement().getClassList().add("custom-checkbox-class");
-						});
-
-						clusterNo.addValueChangeListener(ex -> {
-							if (ex.getValue() != null) {
-								Set<String> yyy = new HashSet<>();
-								yyy.add(ex.getValue().toString());
-								user.setCommunitynos(yyy);
-							}
-						});
+					if (selectedLevel == JurisdictionLevel.COMMUNITY) {
+						populateClusterOptions(districtDto);
+					} else {
+						clusterNo.clear();
+						clusterNo.setVisible(false);
 					}
 				}
-			} else if (!isDistrictMulti && userRoles.getValue().contains(UserRole.DISTRICT_OBSERVER)) {
+			} else if (!isDistrictMulti && isObserver) {
 				if (e.getValue() != null) {
 					clusterNo.clear();
 					clusterNo.setVisible(false);
@@ -499,25 +489,6 @@ public class UserForm extends FormLayout {
 			}
 		});
 
-//		commusr.addValueChangeListener(e -> {
-//			if ((boolean) e.getValue() == true) {
-//				userTypes.setValue(UserType.COMMON_USER);
-//				sortedUserRoles.remove(UserRole.ADMIN);
-//				sortedUserRoles.remove(UserRole.COMMUNITY_INFORMANT);
-//				sortedUserRoles.remove(UserRole.AREA_ADMIN_SUPERVISOR);
-//				sortedUserRoles.remove(UserRole.ADMIN_SUPERVISOR);
-//				sortedUserRoles.remove(UserRole.BAG_USER);
-//				sortedUserRoles.remove(UserRole.PUBLISH_USER);
-//				sortedUserRoles.remove(UserRole.EDITOR_USER);
-//
-//				userRoles.setItems(sortedUserRoles);
-//			}
-//
-//			if ((boolean) e.getValue() == false) {
-//				Set<UserRole> sortedUserRoless = new TreeSet<>(rolesz);
-//				userRoles.setItems(sortedUserRoless);
-//			}
-//		});
 
 		commusr.addValueChangeListener(e -> {
 			if ((boolean) e.getValue() == true) {
@@ -582,8 +553,10 @@ public class UserForm extends FormLayout {
 		region.setWidthFull();
 		province.setWidthFull();
 		district.setWidthFull();
+		
+//		applyGeographicScope(currentJurisdiction);
 
-		VerticalLayout otherFormField = new VerticalLayout(language, region, province, district);
+		VerticalLayout otherFormField = new VerticalLayout(language, region, province, district, districtMulti);
 		formAccess.setId("formaccesschkid");
 		VerticalLayout formAccessParentLayout = new VerticalLayout(formAccess);
 		formAccessParentLayout.setPadding(false);
@@ -591,23 +564,18 @@ public class UserForm extends FormLayout {
 		HorizontalLayout allFieldLayout = new HorizontalLayout(formAccessParentLayout, otherFormField);
 		this.setColspan(allFieldLayout, 2);
 
+		// Initial state: all geographic fields are hidden until a role is chosen.
+		// Role-driven visibility is managed by updateFieldsByUserRole().
+		region.setVisible(false);
+		province.setVisible(false);
+		district.setVisible(false);
+		districtMulti.setVisible(false);
+		clusterNo.setVisible(false);
+
 		add(pInfo, firstName, lastName, userEmail, phone, userPosition, userOrganisation, userData, userName,
-				activeCheck, commusr, userRoles, allFieldLayout, districtMulti, clusterNo);
+				activeCheck, commusr, userRoles, allFieldLayout, clusterNo);
 
 		createButtonsLayout();
-//		String checkBoxDivider = "var parentDiv = document.getElementById(\"formaccesschkid\");\n"
-//				+ "if (parentDiv) {\n" + "var children = parentDiv.querySelectorAll(\"vaadin-checkbox\");\n"
-//				+ "for (var i = 0; i < children.length; i++) {\n" + "console.log(children[i]);\n" + "if (i === 0) {\n"
-//				+ "var newContentL = '<hr><b class=\"formaccesschkbox\">Pre-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "if (i === 4) {\n" + "var newContentL = '<hr><b class=\"formaccesschkbox\">Intra-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "if (i === 8) {\n" + "var newContentL = '<hr><b class=\"formaccesschkbox\">Post-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "}}";
 		
 		String checkBoxDivider = "var parentDiv = document.getElementById(\"formaccesschkid\");\n"
 				+ "if (parentDiv) {\n" 
@@ -717,6 +685,9 @@ public class UserForm extends FormLayout {
 	}
 
 	public boolean checkUnitAssignmentByJurisdictionLevel() {
+		if (userRoles.getValue() == null || userRoles.getValue().isEmpty()) {
+			return true;
+		}
 		for (UserRole role : userRoles.getValue()) {
 			if (role.getJurisdictionLevel() == JurisdictionLevel.COMMUNITY) {
 				if (clusterNo.getSelectedItems().size() == 0) {
@@ -736,6 +707,7 @@ public class UserForm extends FormLayout {
 						district.setInvalid(true);
 						district.setErrorMessage("One or More Districts Must be selected for District Level Users.");
 						district.focus();
+						return false;
 					}
 				}
 			} else if (role.getJurisdictionLevel() == JurisdictionLevel.REGION) {
@@ -1116,6 +1088,11 @@ public class UserForm extends FormLayout {
 	public void setUser(UserDto user) {
 		this.user = user;
 		binder.setBean(user);
+	    updateFieldsByUserRole(user.getUserRoles());
+
+//	    JurisdictionLevel currentJurisdiction = UserRole.getJurisdictionLevel(userProvider.getUser().getUserRoles());
+//	    applyGeographicScope(currentJurisdiction);
+	    
 	}
 
 	public static abstract class UserFormEvent extends ComponentEvent<UserForm> {
@@ -1182,70 +1159,286 @@ public class UserForm extends FormLayout {
 		return addListener(UserFieldValueChangeEvent.class, listener);
 	}
 
-	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
-		final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
-		final boolean useCommunity = jurisdictionLevel == JurisdictionLevel.COMMUNITY;
-		final boolean useDistrictOnly = jurisdictionLevel == JurisdictionLevel.DISTRICT
-				&& userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
-		final boolean useDistrict = jurisdictionLevel == JurisdictionLevel.DISTRICT
-				&& !userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
-		final boolean useRegion = jurisdictionLevel == JurisdictionLevel.REGION || useDistrict;
-		final boolean useArea = jurisdictionLevel == JurisdictionLevel.AREA || useRegion;
-
-		if (useCommunity) {
-			clusterNo.setVisible(true);
-			district.setVisible(true);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useDistrictOnly) {
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.setVisible(false);
-			districtMulti.setVisible(true);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useDistrict) {
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useRegion) {
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useArea) {
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.clear();
-			province.setVisible(false);
-			region.setVisible(true);
-		} else {
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.clear();
-			province.setVisible(false);
-			region.clear();
-			region.setVisible(false);
+	
+	private void populateClusterOptions(DistrictReferenceDto districtDto) {
+		if (districtDto == null) {
+			return;
 		}
+
+		clusterNo.setVisible(true);
+		this.setColspan(clusterNo, 2);
+		communities = FacadeProvider.getCommunityFacade().getAllActiveByDistrict(districtDto.getUuid());
+		clusterNo.setLabel(I18nProperties.getCaption(Captions.clusterNumber));
+
+		List<CommunityReferenceDto> items = FacadeProvider.getCommunityFacade()
+				.getAllActiveByDistrict(districtDto.getUuid());
+		for (CommunityReferenceDto item : items) {
+			if (item.getNumber() == null) {
+				Notification notification = new Notification();
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				notification.setPosition(Position.MIDDLE);
+				Button closeButton = new Button(new Icon("lumo", "cross"));
+				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+				closeButton.getElement().setAttribute("aria-label", "Close");
+				closeButton.addClickListener(event -> notification.close());
+
+				Paragraph text = new Paragraph("Cluster Number cannot be empty, please contact support");
+				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+				layout.setAlignItems(Alignment.CENTER);
+				notification.add(layout);
+				notification.open();
+			}
+
+			item.setCaption(item.getNumber() != null ? item.getNumber().toString() : null);
+		}
+		Collections.sort(items, CommunityReferenceDto.clusternumber);
+
+		clusterNo.setItems(items);
+		clusterNo.getChildren().forEach(checkbox -> {
+			checkbox.getElement().getClassList().add("custom-checkbox-class");
+		});
 	}
+	
+	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+
+	    /* ---------- 1. Closed / empty state: reset everything ---------- */
+	    if (userRoles == null || userRoles.isEmpty()) {
+	        // Hide all geographic widgets
+	        clusterNo.clear();      clusterNo.setVisible(false);
+	        district.clear();       district.setVisible(false);
+	        districtMulti.clear();  districtMulti.setVisible(false);
+	        province.clear();       province.setVisible(false);
+	        region.clear();         region.setVisible(false);
+
+	        // Release any scope locks so the next edit starts clean
+	        region.setReadOnly(false);
+	        province.setReadOnly(false);
+	        district.setReadOnly(false);
+	        districtMulti.setReadOnly(false);
+	        clusterNo.setReadOnly(false);
+	        return;
+	    }
+
+	    /* ---------- 2. Re-apply the editor's geographic scope ---------- */
+	    // The editor's role set can be null during early form construction
+	    // (UserView.closeEditor() -> setUser(new UserDto())), so guard it.
+	    UserDto editor = userProvider != null ? userProvider.getUser() : null;
+	    Set<UserRole> editorRoles = editor != null ? editor.getUserRoles() : null;
+
+	    if (editorRoles != null && !editorRoles.isEmpty()) {
+	        applyGeographicScope(UserRole.getJurisdictionLevel(editorRoles));
+	    } else {
+	        // No editor scope available -> make sure nothing stays locked
+	        region.setReadOnly(false);
+	        province.setReadOnly(false);
+	        district.setReadOnly(false);
+	        districtMulti.setReadOnly(false);
+	        clusterNo.setReadOnly(false);
+	    }
+
+	    /* ---------- 3. Original visibility logic ---------- */
+	    final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+
+	    boolean showRegion = false;
+	    boolean showProvince = false;
+	    boolean showDistrict = false;
+	    boolean showDistrictMulti = false;
+	    boolean showCluster = false;
+
+	    switch (jurisdictionLevel) {
+	        case COMMUNITY:
+	            showRegion = true; showProvince = true;
+	            showDistrict = true; showCluster = true;
+	            break;
+	        case DISTRICT:
+	            showRegion = true; showProvince = true;
+	            if (userRoles.contains(UserRole.SURVEILLANCE_OFFICER)) {
+	                showDistrictMulti = true;
+	            } else {
+	                showDistrict = true;
+	            }
+	            break;
+	        case REGION:
+	            showRegion = true; showProvince = true;
+	            break;
+	        case AREA:
+	        case NATION:
+	            showRegion = true;
+	            break;
+	        default:
+	            break;
+	    }
+
+	    region.setVisible(showRegion);           if (!showRegion)        region.clear();
+	    province.setVisible(showProvince);       if (!showProvince)      province.clear();
+	    district.setVisible(showDistrict);       if (!showDistrict)      district.clear();
+	    districtMulti.setVisible(showDistrictMulti); if (!showDistrictMulti) districtMulti.clear();
+	    clusterNo.setVisible(showCluster);       if (!showCluster)       clusterNo.clear();
+
+	    if (province.getValue() != null) {
+	        List<DistrictReferenceDto> districtOptions = FacadeProvider.getDistrictFacade()
+	                .getAllActiveByRegion(province.getValue().getUuid());
+	        if (showDistrict)      district.setItems(districtOptions);
+	        if (showDistrictMulti) districtMulti.setItems(districtOptions);
+	    }
+
+	    if (showCluster && district.getValue() != null) {
+	        populateClusterOptions(district.getValue());
+	    }
+	}
+	
+
+//	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+//	    final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+//	    applyGeographicScope(jurisdictionLevel);
+//
+//	    
+//	    
+//	    if (userRoles == null || userRoles.isEmpty()) {
+//	        // Hide and clear everything if no roles are selected
+//	        clusterNo.clear(); clusterNo.setVisible(false);
+//	        district.clear(); district.setVisible(false);
+//	        districtMulti.clear(); districtMulti.setVisible(false);
+//	        province.clear(); province.setVisible(false);
+//	        region.clear(); region.setVisible(false);
+//	        return;
+//	    }
+//
+//
+//	    // 1. Determine visibility based on the role's jurisdiction level
+//	    boolean showRegion = false;
+//	    boolean showProvince = false;
+//	    boolean showDistrict = false;
+//	    boolean showDistrictMulti = false;
+//	    boolean showCluster = false;
+//
+//	    switch (jurisdictionLevel) {
+//	    case COMMUNITY:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        showDistrict = true;
+//	        showCluster = true;
+//	        break;
+//	    case DISTRICT:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        if (userRoles.contains(UserRole.SURVEILLANCE_OFFICER)) {
+//	            showDistrictMulti = true;
+//	        } else {
+//	            showDistrict = true;
+//	        }
+//	        break;
+//	    case REGION:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        break;
+//	    case AREA:
+//	    case NATION:
+//	        showRegion = true;
+//	        break;
+//	    default:
+//	        // NONE, HEALTH_FACILITY, LABORATORY, POINT_OF_ENTRY, ... -> no geographic assignment
+//	        break;
+//	    }
+//
+//	    // 2. Apply visibility and clear hidden fields to prevent saving hidden data
+//	    region.setVisible(showRegion);
+//	    if (!showRegion) region.clear();
+//
+//	    province.setVisible(showProvince);
+//	    if (!showProvince) province.clear();
+//
+//	    district.setVisible(showDistrict);
+//	    if (!showDistrict) district.clear();
+//
+//	    districtMulti.setVisible(showDistrictMulti);
+//	    if (!showDistrictMulti) districtMulti.clear();
+//
+//	    clusterNo.setVisible(showCluster);
+//	    if (!showCluster) clusterNo.clear();
+//
+//	    // 3. Re-populate dropdowns if a Province is already selected but the role changed
+//	    if (province.getValue() != null) {
+//	        List<DistrictReferenceDto> districtOptions = FacadeProvider.getDistrictFacade()
+//	                .getAllActiveByRegion(province.getValue().getUuid());
+//	        if (showDistrict) {
+//	            district.setItems(districtOptions);
+//	        }
+//	        if (showDistrictMulti) {
+//	            districtMulti.setItems(districtOptions);
+//	        }
+//	    }
+//
+//	    // 4. Re-populate cluster options if a district is already selected but the role changed
+//	    if (showCluster && district.getValue() != null) {
+//	        populateClusterOptions(district.getValue());
+//	    }
+//	}
+	
+//	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+//		final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+//		final boolean useCommunity = jurisdictionLevel == JurisdictionLevel.COMMUNITY;
+//		final boolean useDistrictOnly = jurisdictionLevel == JurisdictionLevel.DISTRICT
+//				&& userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
+//		final boolean useDistrict = jurisdictionLevel == JurisdictionLevel.DISTRICT
+//				&& !userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
+//		final boolean useRegion = jurisdictionLevel == JurisdictionLevel.REGION || useDistrict;
+//		final boolean useArea = jurisdictionLevel == JurisdictionLevel.AREA || useRegion;
+//
+//		if (useCommunity) {
+//			clusterNo.setVisible(true);
+//			district.setVisible(true);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useDistrictOnly) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.setVisible(false);
+//			districtMulti.setVisible(true);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useDistrict) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useRegion) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useArea) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.clear();
+//			province.setVisible(false);
+//			region.setVisible(true);
+//		} else {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.clear();
+//			province.setVisible(false);
+//			region.clear();
+//			region.setVisible(false);
+//		}
+//	}
 
 	public static void updateItems(CheckboxGroup select, Set<?> items) {
 		Set<?> value = select.getSelectedItems();
@@ -1406,5 +1599,84 @@ public class UserForm extends FormLayout {
 			return 0;
 		}
 	}
+	
+	
+	private void applyGeographicScope(JurisdictionLevel jurisdiction) {
+	    UserDto current = userProvider.getUser();
+	    
+	    region.setReadOnly(false);
+	    province.setReadOnly(false);
+	    district.setReadOnly(false);
+	    districtMulti.setReadOnly(false);
+	    clusterNo.setReadOnly(false);
+	    
+
+	    if (jurisdiction == JurisdictionLevel.AREA && current.getArea() != null) {
+	        region.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.REGION && current.getRegion() != null) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.DISTRICT
+	            && (current.getDistrict() != null || (current.getDistricts() != null && !current.getDistricts().isEmpty()))) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	        if (current.getDistrict() != null) {
+	            district.setReadOnly(true);
+	            if (district.getValue() == null) {
+	                district.setValue(current.getDistrict());
+	            }
+	            // Pre-select the creator's district for multi-district (surveillance officer) users as well
+	            @SuppressWarnings("unchecked")
+	            Set<DistrictReferenceDto> selectedMulti = (Set<DistrictReferenceDto>) districtMulti.getValue();
+	            if (selectedMulti == null || selectedMulti.isEmpty()) {
+	                districtMulti.setValue(Collections.singleton(current.getDistrict()));
+	            }
+	        } else {
+	            districtMulti.setReadOnly(true);
+	            @SuppressWarnings("unchecked")
+	            Set<DistrictReferenceDto> selectedMulti = (Set<DistrictReferenceDto>) districtMulti.getValue();
+	            if (selectedMulti == null || selectedMulti.isEmpty()) {
+	                districtMulti.setValue(current.getDistricts());
+	            }
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.COMMUNITY && current.getCommunity() != null
+	            && !current.getCommunity().isEmpty()) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        district.setReadOnly(true);
+	        clusterNo.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	        if (district.getValue() == null) {
+	            district.setValue(current.getDistrict());
+	        }
+	        @SuppressWarnings("unchecked")
+	        Set<CommunityReferenceDto> selectedClusters = (Set<CommunityReferenceDto>) clusterNo.getValue();
+	        if (selectedClusters == null || selectedClusters.isEmpty()) {
+	            clusterNo.setValue(current.getCommunity());
+	        }
+	    }
+	    // NATION and other levels: no restriction
+	}
+	
 
 }

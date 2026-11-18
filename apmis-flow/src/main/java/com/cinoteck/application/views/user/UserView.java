@@ -253,6 +253,26 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 				ImportUsersDataDialog dialogx = new ImportUsersDataDialog();
 				dialogx.open();
+			}else {
+				
+				Notification notification = new Notification();
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				notification.setPosition(Position.MIDDLE);
+				Button closeButton = new Button(new Icon("lumo", "cross"));
+				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+				closeButton.getElement().setAttribute("aria-label", "Close");
+				closeButton.addClickListener(event -> {
+					notification.close();
+				});
+
+				Paragraph text = new Paragraph(
+						"Error : You do not have the required permissions to import users. Please contact your administrator.");
+
+				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+				layout.setAlignItems(Alignment.CENTER);
+
+				notification.add(layout);
+				notification.open();
 			}
 		});
 
@@ -692,6 +712,9 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			notification.add(layout);
 			notification.open();
 			return;
+		}else {
+			UsersBulkEditDialog dialog = new UsersBulkEditDialog(selectedItems, userDto, filterDataProvider);
+			dialog.open();
 		}
 
 	}
@@ -931,53 +954,69 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 		            boolean isAdmin = loggedInRoles != null && loggedInRoles.contains(UserRole.ADMIN);
 
-		            if (isAdmin) {
+		            /* ---- NEW: self-edit exception so users can edit themselves ---- */
+		            boolean isEditingSelf = item.getUuid() != null
+		                    && item.getUuid().equals(userProvider.getUser().getUuid());
+		            /* ---------------------------------- */
+		            
+		            if (isAdmin || isEditingSelf) {
 		                // Admins are exempt and can open anyone (including other Admins)
 		                editUser(item, false);
 		            } else {
-		                // Calculate max rank of logged-in user
-		                int loggedInMaxRank = -1;
-		                if (loggedInRoles != null) {
-		                    for (UserRole r : loggedInRoles) {
-		                        int rank = getRoleRank(r);
-		                        if (rank > loggedInMaxRank) {
-		                            loggedInMaxRank = rank;
-		                        }
-		                    }
-		                }
+		                int loggedInMaxRank = maxRank(loggedInRoles);
+		                int targetMaxRank   = maxRank(targetRoles);
 
-		                // Calculate max rank of the target user being clicked
-		                int targetMaxRank = -1;
-		                if (targetRoles != null) {
-		                    for (UserRole r : targetRoles) {
-		                        int rank = getRoleRank(r);
-		                        if (rank > targetMaxRank) {
-		                            targetMaxRank = rank;
-		                        }
-		                    }
-		                }
-
-		                // Block access if target user is at the same or higher jurisdiction level
 		                if (targetMaxRank >= loggedInMaxRank) {
-		                    Notification notification = new Notification();
-		                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-		                    notification.setPosition(Position.MIDDLE);
-		                    
-		                    Button closeButton = new Button(new Icon("lumo", "cross"));
-		                    closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-		                    closeButton.getElement().setAttribute("aria-label", "Close");
-		                    closeButton.addClickListener(e -> notification.close());
-		                    
-		                    Paragraph text = new Paragraph( "Access Denied: Only users assigned to lower Geographical jurisdiction levels can be edited.");
-		                    HorizontalLayout noteLayout = new HorizontalLayout(text, closeButton);
-		                    noteLayout.setAlignItems(Alignment.CENTER);
-		                    
-		                    notification.add(noteLayout);
-		                    notification.open();
+		                    showAccessDenied(
+		                        "Access Denied: Only users assigned to lower Geographical "
+		                      + "jurisdiction levels can be edited.");
 		                } else {
-		                    // Allow edit for subordinate users
 		                    editUser(item, false);
 		                }
+		                
+		                // Calculate max rank of logged-in user
+//		                int loggedInMaxRank = -1;
+//		                if (loggedInRoles != null) {
+//		                    for (UserRole r : loggedInRoles) {
+//		                        int rank = getRoleRank(r);
+//		                        if (rank > loggedInMaxRank) {
+//		                            loggedInMaxRank = rank;
+//		                        }
+//		                    }
+//		                }
+//
+//		                // Calculate max rank of the target user being clicked
+//		                int targetMaxRank = -1;
+//		                if (targetRoles != null) {
+//		                    for (UserRole r : targetRoles) {
+//		                        int rank = getRoleRank(r);
+//		                        if (rank > targetMaxRank) {
+//		                            targetMaxRank = rank;
+//		                        }
+//		                    }
+//		                }
+//
+//		                // Block access if target user is at the same or higher jurisdiction level
+//		                if (targetMaxRank >= loggedInMaxRank) {
+//		                    Notification notification = new Notification();
+//		                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//		                    notification.setPosition(Position.MIDDLE);
+//		                    
+//		                    Button closeButton = new Button(new Icon("lumo", "cross"));
+//		                    closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+//		                    closeButton.getElement().setAttribute("aria-label", "Close");
+//		                    closeButton.addClickListener(e -> notification.close());
+//		                    
+//		                    Paragraph text = new Paragraph( "Access Denied: Only users assigned to lower Geographical jurisdiction levels can be edited.");
+//		                    HorizontalLayout noteLayout = new HorizontalLayout(text, closeButton);
+//		                    noteLayout.setAlignItems(Alignment.CENTER);
+//		                    
+//		                    notification.add(noteLayout);
+//		                    notification.open();
+//		                } else {
+//		                    // Allow edit for subordinate users
+//		                    editUser(item, false);
+//		                }
 		            }
 
 		            grid.deselectAll(); // Deselect all items after processing the selected item
@@ -988,11 +1027,47 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		return;
 
 	}
+	
+	private static int maxRank(Set<UserRole> roles) {
+	    if (roles == null) return -1;
+	    int max = -1;
+	    for (UserRole r : roles) max = Math.max(max, getRoleRank(r));
+	    return max;
+	}
+
+	private void showAccessDenied(String message) {
+	    Notification n = new Notification();
+	    n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+	    n.setPosition(Position.MIDDLE);
+	    Button closeBtn = new Button(new Icon("lumo", "cross"));
+	    closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+	    closeBtn.addClickListener(e -> n.close());
+	    Paragraph text = new Paragraph(message);
+	    HorizontalLayout l = new HorizontalLayout(text, closeBtn);
+	    l.setAlignItems(Alignment.CENTER);
+	    n.add(l);
+	    n.open();
+	}
 
 	private void configureForm(UserDto user) {
+		
+		UserDto currentUser = userProvider.getUser();
 
 		I18nProperties.setUserLanguage(userProvider.getUser().getLanguage());
+		
+ 
 		userForm = new UserForm(regions, provinces, districts, user, false);
+		
+//		if (currentUser.getArea() != null) {
+//			userForm.region.setValue(currentUser.getArea());
+//		} else if (currentUser.getRegion() != null) {
+//			userForm.province.setValue(currentUser.getRegion());
+//		}else if (currentUser.getDistrict() != null) {
+//			userForm.district.setValue(currentUser.getDistrict());
+//		}else if (currentUser.getDistricts().size() > 0) {
+//			userForm.districtMulti.setValue(currentUser.getDistricts());
+//		}
+		
 		userForm.setSizeFull();
 		userForm.addResetPasswordListener(this::resetUserPassWord);
 		userForm.addSaveListener(this::saveUser);
@@ -1002,6 +1077,7 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		});
 
 	}
+	
 
 	private Component getContent() {
 		mainContainer.setFlexGrow(4, userForm);

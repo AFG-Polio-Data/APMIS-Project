@@ -222,6 +222,7 @@ public class CampaignFormDataFacadeEjb implements CampaignFormDataFacade {
 		target.setSource(source.getSource());
 //		target.setRecordgroupuuid(source.getRecordgroupuuid());
 		target.setRecordversion(source.getRecordversion());
+		
 
 		return target;
 	}
@@ -3708,7 +3709,7 @@ if(criteria.getUserLanguage() != null) {
 	public void validateCampaignData(List<String> uuids, boolean isUnValidatingAction) {
 				for(String uuidx : uuids) {
 					
-					if(isUnValidatingAction) {
+					if(!isUnValidatingAction) {
 						System.out.println("unvalidateeee");
 						campaignFormDataService.unValidateData(uuidx);
 					}else {
@@ -3771,25 +3772,43 @@ if(criteria.getUserLanguage() != null) {
 		
 	}
 	
+//	@Override
+//	public boolean getValidatedStatus(String uuid) {
+//
+//				
+//				CriteriaBuilder cb = em.getCriteriaBuilder();
+//				CriteriaQuery<Boolean> cq = cb.createQuery(Boolean.class);
+//				Root<CampaignFormData> from = cq.from(CampaignFormData.class);
+//
+//				cq.where(cb.equal(from.get(CampaignFormData.UUID), uuid)
+////						cb.equal(from.get(AbstractDomainObject.UUID), campaignFormDataUuid))
+//						);
+//				cq.select(from.get(CampaignFormData.ISVALIDATED));
+//				System.out.println("resultData - "+ SQLExtractor.from(em.createQuery(cq)));
+//				boolean count = em.createQuery(cq).getSingleResult();
+//				
+//				
+//				
+//				return count;
+//		
+//	}
+	
 	@Override
 	public boolean getValidatedStatus(String uuid) {
 
-				
-				CriteriaBuilder cb = em.getCriteriaBuilder();
-				CriteriaQuery<Boolean> cq = cb.createQuery(Boolean.class);
-				Root<CampaignFormData> from = cq.from(CampaignFormData.class);
+	    CriteriaBuilder cb = em.getCriteriaBuilder();
+	    CriteriaQuery<Boolean> cq = cb.createQuery(Boolean.class);
+	    Root<CampaignFormData> from = cq.from(CampaignFormData.class);
 
-				cq.where(cb.equal(from.get(CampaignFormData.UUID), uuid)
-//						cb.equal(from.get(AbstractDomainObject.UUID), campaignFormDataUuid))
-						);
-				cq.select(from.get(CampaignFormData.ISVALIDATED));
-				System.out.println("resultData - "+ SQLExtractor.from(em.createQuery(cq)));
-				boolean count = em.createQuery(cq).getSingleResult();
-				
-				
-				
-				return count;
-		
+	    cq.where(cb.equal(from.get(CampaignFormData.UUID), uuid));
+	    cq.select(from.get(CampaignFormData.ISVALIDATED));
+
+	    List<Boolean> result = em.createQuery(cq)
+	            .setMaxResults(1)
+	            .getResultList();
+
+	    // no row yet -> treat as not validated
+	    return !result.isEmpty() && Boolean.TRUE.equals(result.get(0));
 	}
 	
 	
