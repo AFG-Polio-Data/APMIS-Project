@@ -1,0 +1,992 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>How to read the tests and the checks - SORMAS Project</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-read-the-tests-and-the-checks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SORMAS Project" class="md-header__button md-logo" aria-label="SORMAS Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SORMAS Project
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How to read the tests and the checks
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hzi-braunschweig/SORMAS-Project" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hzi-braunschweig/SORMAS-Project
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SORMAS Project" class="md-nav__button md-logo" aria-label="SORMAS Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    SORMAS Project
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hzi-braunschweig/SORMAS-Project" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hzi-braunschweig/SORMAS-Project
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://sormas.org" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Official Website
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEMO_APP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Demo App
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sormas-rest/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    REST
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEVELOPMENT_ENVIRONMENT/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Development Environment
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sormas-base/doc/keycloak/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Keycloak
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../I18N/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    I18n
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Security
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECRET_SCANNING/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Secret Scanning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SERVER_CUSTOMIZATION/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Customization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SERVER_DEV_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Development Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SERVER_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SERVER_UPDATE/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Update
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SOP_DISEASES/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diseases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ADDING_LICENSE/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Licensing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../3RD_PARTY_ACK/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Acknowledgements
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-checks-on-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      The checks on a pull request
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-find-the-result-of-a-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to find the result of a check
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to find the result of a check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-android-gate-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      When android gate fails
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-read-a-failed-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to read a failed test
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to read a failed test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sync-mapping-tests-syncmappingtest" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sync mapping tests (*SyncMappingTest)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-and-reload-campaignformdataroundtriptest" class="md-nav__link">
+    <span class="md-ellipsis">
+      Save and reload (CampaignFormDataRoundTripTest)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#push-payload-campaignformdatapushpayloadtest" class="md-nav__link">
+    <span class="md-ellipsis">
+      Push payload (CampaignFormDataPushPayloadTest)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end-tests-desymedasormasappe2e" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-end tests (de.symeda.sormas.app.e2e)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run-the-tests-on-your-computer" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to run the tests on your computer
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-tests-are" class="md-nav__link">
+    <span class="md-ellipsis">
+      Where the tests are
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="how-to-read-the-tests-and-the-checks">How to read the tests and the checks</h1>
+<p>This page is for developers who open a pull request. It tells you what each check does, where to find its result, and what to do when a test fails.</p>
+<h2 id="the-checks-on-a-pull-request">The checks on a pull request</h2>
+<p>Each push to a pull request starts the checks again. The diagram shows when each check runs. A check with a <strong>thick border</strong> is required: it must pass before the pull request can merge. A check with a <strong>dashed border</strong> does not block a merge.</p>
+<pre><code class="language-mermaid">flowchart TD
+    PR([&quot;You open a pull request,&lt;br/&gt;or you push to it&quot;])
+
+    PR --&gt; MVN[&quot;&lt;b&gt;mvn verify&lt;/b&gt;&lt;br/&gt;builds the server&lt;br/&gt;and runs its tests&quot;]
+    PR --&gt; LINT[&quot;&lt;b&gt;Lint Code Base&lt;/b&gt;&lt;br/&gt;checks the style of&lt;br/&gt;the changed files&quot;]
+    PR --&gt; NAMES[&quot;&lt;b&gt;validate PR title&lt;/b&gt;&lt;br/&gt;&lt;b&gt;validate branch name&lt;/b&gt;&quot;]
+    PR --&gt; DETECT{&quot;&lt;b&gt;detect android changes&lt;/b&gt;&lt;br/&gt;Does the pull request change&lt;br/&gt;sormas-app/, sormas-api/,&lt;br/&gt;sormas-rest/, sormas-base/pom.xml&lt;br/&gt;or the Android workflow?&quot;}
+    PR --&gt; E2EQ{&quot;Does the pull request change&lt;br/&gt;the end-to-end tests&lt;br/&gt;or their workflow?&quot;}
+
+    DETECT --&gt;|yes| BUILD[&quot;&lt;b&gt;android build and unit tests&lt;/b&gt;&lt;br/&gt;builds the app, runs the&lt;br/&gt;unit tests and mobsfscan&quot;]
+    DETECT --&gt;|no| SKIP[&quot;The Android build&lt;br/&gt;does not run&quot;]
+    BUILD --&gt; GATE[&quot;&lt;b&gt;android gate&lt;/b&gt;&lt;br/&gt;fails if the Android build&lt;br/&gt;failed or was cancelled&quot;]
+    SKIP --&gt; GATE
+
+    E2EQ --&gt;|yes| E2E[&quot;&lt;b&gt;app end-to-end tests&lt;/b&gt;&lt;br/&gt;runs the app on an&lt;br/&gt;Android 8 emulator&quot;]
+    E2EQ --&gt;|no| NOE2E[&quot;The end-to-end tests&lt;br/&gt;do not run&quot;]
+
+    MVN --&gt; MERGE{{&quot;The pull request can merge&lt;br/&gt;when the 3 required checks pass&lt;br/&gt;and 1 reviewer approves&quot;}}
+    LINT --&gt; MERGE
+    GATE --&gt; MERGE
+
+    classDef required stroke-width:4px
+    classDef advisory stroke-dasharray:6 4
+    class MVN,LINT,GATE required
+    class NAMES,BUILD,E2E advisory
+</code></pre>
+<p>The table gives more detail about each check.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>What it does</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mvn verify</code></td>
+<td>Builds the server modules and runs their tests.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>Lint Code Base</code></td>
+<td>Checks the style of the files that the pull request changes. It does not check the generated files in <code>openapi/</code>.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>android gate</code></td>
+<td>Gives one result for the Android checks. It passes when the Android build passes or does not run. It fails when the build fails or is cancelled.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>detect android changes</code></td>
+<td>Finds out if the pull request changes the app. If not, the Android build does not run.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>android build and unit tests</code></td>
+<td>Builds the debug app and runs the app unit tests.</td>
+<td>no, but <code>android gate</code> reports its result</td>
+</tr>
+<tr>
+<td><code>app end-to-end tests</code></td>
+<td>Starts the app on an Android 8 emulator and runs the end-to-end tests. It runs only when a pull request changes these tests or their workflow.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>validate PR title</code></td>
+<td>The title must start with a type, for example <code>fix:</code> or <code>test(app):</code>.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>validate branch name</code></td>
+<td>The branch name must start with <code>test/</code>, <code>ci/</code>, <code>fix/</code>, <code>docs/</code>, <code>chore/</code> or <code>feat/</code>.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>mobsfscan</code></td>
+<td>A security scan of the app code. It gives advice only.</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-to-find-the-result-of-a-check">How to find the result of a check</h2>
+<ol>
+<li>Open the pull request and click the <strong>Checks</strong> tab. You can also click <strong>Details</strong> next to a check.</li>
+<li>Click the job name. A failed step has a red mark. Open that step.</li>
+<li>The cause of the failure is usually near the end of the log.</li>
+</ol>
+<p>Each check also has these results:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Where to find the results</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>android build and unit tests</code></td>
+<td>The <strong>Summary</strong> page of the run shows the table "Android unit tests": the number of tests and failures for each test class. The artifact <code>android-unit-test-report</code> contains the full HTML report. Open <code>reports/tests/testDebugUnitTest/index.html</code>.</td>
+</tr>
+<tr>
+<td><code>app end-to-end tests</code></td>
+<td>The artifact <code>app-e2e-report</code> contains the HTML report (<code>reports/androidTests/connected/index.html</code>), the XML results, and <code>logcat.txt</code>, the full log of the emulator.</td>
+</tr>
+<tr>
+<td><code>mvn verify</code></td>
+<td>Read the log. Search for <code>Tests run:</code> and <code>BUILD FAILURE</code>. The module name is in the lines above the failure.</td>
+</tr>
+<tr>
+<td><code>Lint Code Base</code></td>
+<td>The log gives the file, the line and the rule.</td>
+</tr>
+</tbody>
+</table>
+<p>To download an artifact, open the run page and go to the <strong>Artifacts</strong> section at the bottom.</p>
+<h3 id="when-android-gate-fails">When <code>android gate</code> fails</h3>
+<p><code>android gate</code> does not test anything itself. It only reports the result of the Android build. Thus, open <code>android build and unit tests</code> to find the real failure.</p>
+<h2 id="how-to-read-a-failed-test">How to read a failed test</h2>
+<h3 id="sync-mapping-tests-syncmappingtest">Sync mapping tests (<code>*SyncMappingTest</code>)</h3>
+<p>Each sync mapping test checks one <code>DtoHelper</code>. It finds each field that is on both the server DTO and the phone entity, and it makes sure that the helper copies the field in each direction.</p>
+<table>
+<thead>
+<tr>
+<th>In the message</th>
+<th>Direction</th>
+<th>Method in the helper</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>server -&gt; phone</code></td>
+<td>pull</td>
+<td><code>fillInnerFromDto</code></td>
+</tr>
+<tr>
+<td><code>phone -&gt; server</code></td>
+<td>push</td>
+<td><code>fillInnerFromAdo</code></td>
+</tr>
+</tbody>
+</table>
+<p>Example of a failure:</p>
+<pre><code class="language-text">CampaignFormMetaRegion &lt;-&gt; CampaignFormMetaRegionDto
+  fields on both sides: 2
+  server -&gt; phone, NOT copied by fillInnerFromDto: [area_id]
+expected:&lt;[]&gt; but was:&lt;[area_id]&gt;
+</code></pre>
+<p>This message means: <code>area_id</code> is on the DTO and on the entity, but <code>fillInnerFromDto</code> does not copy it. Thus, the phone never gets this value from the server.</p>
+<p>What to do:</p>
+<ul>
+<li><strong>The field must be copied:</strong> add the copy line to the helper. For this example: <code>target.setArea_id(source.getArea_id());</code> in <code>fillInnerFromDto</code>.</li>
+<li><strong>The field must not be copied:</strong> add it to the list <code>NOT_COPIED_TO_PHONE</code> or <code>NOT_COPIED_TO_SERVER</code> in the test, with the reason.</li>
+</ul>
+<p>The usual cause: you added a field to a DTO and to an entity, but not to the helper.</p>
+<h3 id="save-and-reload-campaignformdataroundtriptest">Save and reload (<code>CampaignFormDataRoundTripTest</code>)</h3>
+<p>This test saves campaign form values in the same way as the local database, loads them again, and compares them. A failure gives the value that went in and the value that came back. For example:</p>
+<pre><code class="language-text">Expected: is &quot;007&quot;
+     but: was &quot;7&quot;
+</code></pre>
+<p>The cause is a change in how <code>CampaignFormData</code> converts the form values to JSON and back.</p>
+<p>The last three tests record values that change type: a whole number comes back as a decimal, <code>YesNo</code> comes back as text, and a <code>Date</code> comes back as text. If one of these tests fails, the conversion changed. Make sure that the change is intended.</p>
+<h3 id="push-payload-campaignformdatapushpayloadtest">Push payload (<code>CampaignFormDataPushPayloadTest</code>)</h3>
+<p>This test checks that each saved value is in the JSON that the phone sends to the server. A failure names the entry:</p>
+<pre><code class="language-text">The push does not send the entry &quot;dropped&quot;
+The push sends a different value for &quot;decimal&quot;
+</code></pre>
+<p>The cause is a change in <code>CampaignFormDataDtoHelper.fillInnerFromAdo</code>, or in the Gson configuration in <code>RetroProvider.initGson()</code>.</p>
+<h3 id="end-to-end-tests-desymedasormasappe2e">End-to-end tests (<code>de.symeda.sormas.app.e2e</code>)</h3>
+<p>Open the HTML report in the artifact <code>app-e2e-report</code>. If a test failed, search <code>logcat.txt</code> for <code>FATAL EXCEPTION</code> or for the name of the test.</p>
+<p>This message means that the tests were given the production server:</p>
+<pre><code class="language-text">The end-to-end tests must not use the production server: ...
+</code></pre>
+<p>The end-to-end tests stop before they open a screen, so they cannot write test data to the live system.</p>
+<h2 id="how-to-run-the-tests-on-your-computer">How to run the tests on your computer</h2>
+<p>The server tests:</p>
+<pre><code class="language-bash">cd sormas-base
+mvn verify
+</code></pre>
+<p>The app unit tests need the Android SDK and <code>sormas-api</code> in your local Maven repository:</p>
+<pre><code class="language-bash">cd sormas-base
+mvn install -pl :sormas-api -am -DskipTests
+
+cd ../sormas-app
+./gradlew :app:testDebugUnitTest
+
+# Only one test class:
+./gradlew :app:testDebugUnitTest --tests '*CampaignFormDataRoundTripTest'
+</code></pre>
+<p>The end-to-end tests need an emulator or a device with Android 8 or later:</p>
+<pre><code class="language-bash">cd sormas-app
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.package=de.symeda.sormas.app.e2e
+</code></pre>
+<h2 id="where-the-tests-are">Where the tests are</h2>
+<table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>Tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sormas-api/src/test/java</code></td>
+<td>Server unit tests, for example <code>VersionHelperTest</code>. <code>mvn verify</code> runs them.</td>
+</tr>
+<tr>
+<td><code>sormas-app/app/src/test/java/.../backend/common</code></td>
+<td>The sync mapping harness and its own tests.</td>
+</tr>
+<tr>
+<td><code>sormas-app/app/src/test/java/.../backend/campaign</code></td>
+<td>The campaign tests: sync mapping, save and reload, push payload.</td>
+</tr>
+<tr>
+<td><code>sormas-app/app/src/androidTest/java/.../e2e</code></td>
+<td>The end-to-end tests that run on an emulator.</td>
+</tr>
+</tbody>
+</table>
+<p>The other files in <code>sormas-app/app/src/androidTest</code> are old SORMAS tests for screens that APMIS does not use. They must compile, but they do not run.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/hzi-braunschweig/SORMAS-Project" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": 0.1}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+    
+  </body>
+</html>
