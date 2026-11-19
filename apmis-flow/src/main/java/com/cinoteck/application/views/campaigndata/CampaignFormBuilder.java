@@ -85,6 +85,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Paragraph;
@@ -95,6 +96,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
@@ -117,6 +119,7 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 
 import de.symeda.sormas.api.AgeGroup;
 import de.symeda.sormas.api.FacadeProvider;
@@ -129,6 +132,7 @@ import de.symeda.sormas.api.campaign.data.CampaignFormDataEntry;
 import de.symeda.sormas.api.campaign.data.CampaignFormDataIndexDto;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageSource;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageValue;
+import de.symeda.sormas.api.campaign.data.CampaignFormImageValidationDto;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageNamingContext;
 import de.symeda.sormas.api.campaign.data.translation.TranslationElement;
 import de.symeda.sormas.api.campaign.form.CampaignFormElement;
@@ -163,6 +167,7 @@ import de.symeda.sormas.api.user.FormAccess;
 import de.symeda.sormas.api.user.UserActivitySummaryDto;
 import de.symeda.sormas.api.user.UserRight;
 import de.symeda.sormas.api.user.UserRole;
+import de.symeda.sormas.api.utils.ValidationRuntimeException;
 
 public class CampaignFormBuilder extends VerticalLayout {
 
@@ -178,20 +183,16 @@ public class CampaignFormBuilder extends VerticalLayout {
 	private Map<String, String> userTranslationsHint = new HashMap<String, String>();
 	private Map<String, String> userOptTranslations = new HashMap<String, String>();
 	Map<String, Component> fields;
-//<<<<<<< HEAD
 	private final Map<String, List<CampaignFormImageValue>> imageFieldValues = new HashMap<>();
 	private final Map<String, byte[]> imagePreviewCache = new HashMap<>();
 	private static final ObjectMapper IMAGE_VALUE_OBJECT_MAPPER = new ObjectMapper();
 	private final Map<String, Component> imageLayouts = new HashMap<>();
-//=======
-//	private final Map<String, CampaignFormImageValue> imageFieldValues = new HashMap<>();
-//	private final Map<String, byte[]> imageFieldBytes = new HashMap<>();
+
 	private static final int MIN_IMAGE_WIDTH = 640;
 	private static final int MIN_IMAGE_HEIGHT = 480;
 	private static final double MIN_IMAGE_BRIGHTNESS = 25.0;
 	private static final double MAX_IMAGE_BRIGHTNESS = 235.0;
 	private static final double MIN_IMAGE_SHARPNESS_VARIANCE = 40.0;
-//>>>>>>> branch 'development' of https://github.com/omoluabidotcom/APMIS-Project.git
 
 	private Map<String, String> optionsValues = new HashMap<String, String>();
 	private Map<String, String> optionsOrder = new HashMap<String, String>();
@@ -3144,13 +3145,12 @@ public class CampaignFormBuilder extends VerticalLayout {
 	public List<CampaignFormDataEntry> getFormValues() {
 		return fields.keySet().stream().map(id -> {
 			Component field = fields.get(id);
-			if (imageFieldValues.containsKey(id)) {
+			CampaignFormElement element = formElements.stream().filter(e -> id.equals(e.getId())).findFirst()
+					.orElse(null);
+
+			if (element != null && CampaignFormElementType.IMAGE == CampaignFormElementType.fromString(element.getType())) {
 				List<CampaignFormImageValue> images = imageFieldValues.get(id);
-
-				CampaignFormElement element = formElements.stream().filter(e -> id.equals(e.getId())).findFirst()
-						.orElse(null);
-
-				boolean isMultiple = element != null && Boolean.TRUE.equals(element.getImageMultiple());
+				boolean isMultiple = Boolean.TRUE.equals(element.getImageMultiple());
 
 				if (images == null || images.isEmpty()) {
 					return new CampaignFormDataEntry(id, null);
@@ -3164,7 +3164,6 @@ public class CampaignFormBuilder extends VerticalLayout {
 					CampaignFormImageValue first = images.get(0);
 					return new CampaignFormDataEntry(id, first != null ? first.toMap() : null);
 				}
-
 			}
 
 			if (field instanceof DatePicker) {
@@ -3415,7 +3414,15 @@ public class CampaignFormBuilder extends VerticalLayout {
 					wasCompressed = true;
 				}
 
-//<<<<<<< HEAD
+				CampaignFormImageValidationDto contentValidation = FacadeProvider.getCampaignFormImageFacade()
+						.validateImageContent(finalBytes);
+				if (contentValidation != null && !contentValidation.isValid()) {
+					Notification.show(StringUtils.defaultIfBlank(contentValidation.getMessage(),
+							"Image rejected: contains prohibited content (human face/person or animal)."), 8000,
+							Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+					return;
+				}
+
 				CampaignFormImageValue uploaded = new CampaignFormImageValue();
 				uploaded.setOriginalFileName(event.getFileName());
 				uploaded.setMimeType(event.getMIMEType());
@@ -3902,15 +3909,63 @@ public class CampaignFormBuilder extends VerticalLayout {
 		}
 	}
 
+//	private void openImagePreviewDialog(List<CampaignFormImageValue> images) {
+//		Dialog dlg = new Dialog();
+//		dlg.setWidth("70vw");
+//		dlg.setHeight("80vh");
+//
+//		VerticalLayout content = new VerticalLayout();
+//		content.setSpacing(true);
+//
+//		for (CampaignFormImageValue img : images) {
+//			if (img == null || !img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
+//				continue;
+//			}
+//			StreamResource resource = buildImageResource(img.getImageId());
+//			if (resource == null) {
+//				continue;
+//			}
+//			Image preview = new Image(resource, "Uploaded image");
+//			preview.setWidth("100%");
+//			preview.getStyle().set("object-fit", "contain");
+//			content.add(preview);
+//		}
+//
+//		Button close = new Button("Close", ev -> dlg.close());
+//		content.add(close);
+//		dlg.add(content);
+//		dlg.open();
+//	}
+	
 	private void openImagePreviewDialog(List<CampaignFormImageValue> images) {
 		Dialog dlg = new Dialog();
-		dlg.setWidth("70vw");
-		dlg.setHeight("80vh");
+		dlg.setWidth("80vw");
+		dlg.setMaxWidth("1000px");
+		dlg.setHeight("85vh");
 
-		VerticalLayout content = new VerticalLayout();
-		content.setSpacing(true);
+		com.vaadin.flow.component.html.Div imageGrid = new com.vaadin.flow.component.html.Div();
+		imageGrid.getStyle().set("display", "grid");
+		imageGrid.getStyle().set("gap", "16px");
+		imageGrid.getStyle().set("align-items", "center");
+		imageGrid.setWidthFull();
 
-		for (CampaignFormImageValue img : images) {
+		int size = images.size();
+		if (size == 1) {
+			imageGrid.getStyle().set("grid-template-columns", "1fr");
+			imageGrid.setHeightFull();
+		} else if (size == 2) {
+			imageGrid.getStyle().set("grid-template-columns", "repeat(2, 1fr)");
+		} else {
+			imageGrid.getStyle().set("grid-template-columns", "repeat(3, 1fr)");
+		}
+
+		// Container to hold hidden anchors for downloading multiple files
+		com.vaadin.flow.component.html.Div hiddenAnchors = new com.vaadin.flow.component.html.Div();
+		hiddenAnchors.getStyle().set("display", "none");
+		List<String> downloadIds = new java.util.ArrayList<>();
+
+		for (int i = 0; i < images.size(); i++) {
+			CampaignFormImageValue img = images.get(i);
 			if (img == null || !img.isUploaded() || StringUtils.isBlank(img.getImageId())) {
 				continue;
 			}
@@ -3918,16 +3973,95 @@ public class CampaignFormBuilder extends VerticalLayout {
 			if (resource == null) {
 				continue;
 			}
+
+			VerticalLayout cell = new VerticalLayout();
+			cell.setPadding(false);
+			cell.setSpacing(false);
+			cell.setAlignItems(FlexComponent.Alignment.CENTER);
+			if (size == 1) {
+				cell.setHeightFull();
+			}
+
 			Image preview = new Image(resource, "Uploaded image");
-			preview.setWidth("100%");
+			preview.setWidthFull();
 			preview.getStyle().set("object-fit", "contain");
-			content.add(preview);
+			preview.getStyle().set("border-radius", "4px");
+			preview.getStyle().set("background-color", "#f5f5f5");
+
+			if (size == 1) {
+				preview.setHeightFull();
+				preview.setMaxHeight("65vh");
+			} else {
+				preview.setHeight("300px");
+			}
+
+			cell.add(preview);
+			imageGrid.add(cell);
+
+			// Create a hidden anchor for this image
+			String anchorId = "dl-anchor-" + i + "-" + System.currentTimeMillis();
+			Anchor downloadLink = new Anchor(resource, "");
+			downloadLink.setId(anchorId);
+			downloadLink.getElement().setAttribute("download", true);
+			hiddenAnchors.add(downloadLink);
+			downloadIds.add(anchorId);
 		}
 
-		Button close = new Button("Close", ev -> dlg.close());
-		content.add(close);
-		dlg.add(content);
-		dlg.open();
+		Scroller scroller = new Scroller(imageGrid);
+		scroller.setSizeFull();
+
+		// Footer Layout
+				HorizontalLayout footer = new HorizontalLayout();
+				footer.setWidthFull();
+				footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+				
+				Button closeBtn = new Button("Close", ev -> dlg.close());
+				closeBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+				// 1. Check if the current user has the required Editor role
+				// (Uses the existing currentUser instance in CampaignFormBuilder)
+				boolean isEditor = currentUser.getUser().getUserRoles().contains(UserRole.EDITOR_USER);
+
+				if (isEditor) {
+					Button downloadBtn = new Button(downloadIds.size() > 1 ? "Download All" : "Download", VaadinIcon.DOWNLOAD.create());
+					downloadBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+					
+					// If it's a single image, wrap the button natively
+					if (downloadIds.size() == 1) {
+						Anchor singleLink = (Anchor) hiddenAnchors.getChildren().findFirst().get();
+						hiddenAnchors.remove(singleLink); 
+						singleLink.add(downloadBtn);
+						footer.add(singleLink, closeBtn);
+					} 
+					// If multiple images, use JS to click all hidden anchors with a slight delay
+					else if (downloadIds.size() > 1) {
+						downloadBtn.addClickListener(e -> {
+							StringBuilder js = new StringBuilder();
+							for (int i = 0; i < downloadIds.size(); i++) {
+								js.append("setTimeout(() => { document.getElementById('")
+								  .append(downloadIds.get(i))
+								  .append("').click(); }, ")
+								  .append(i * 300) // 300ms delay between downloads
+								  .append(");");
+							}
+							UI.getCurrent().getPage().executeJs(js.toString());
+						});
+						footer.add(hiddenAnchors, downloadBtn, closeBtn);
+					} else {
+						footer.add(closeBtn); 
+					}
+				} else {
+					// 2. If the user is not an Editor, only render the close button
+					footer.add(closeBtn);
+				}
+
+				VerticalLayout mainLayout = new VerticalLayout(scroller, footer);
+				mainLayout.setSizeFull();
+				mainLayout.setPadding(true);
+				mainLayout.setSpacing(true);
+
+				dlg.add(mainLayout);
+				dlg.open();
 	}
 
 	private void removeButtonVisibility(Button removeButton, boolean visible) {
@@ -4059,6 +4193,13 @@ public class CampaignFormBuilder extends VerticalLayout {
 						if (sharpnessVariance < MIN_IMAGE_SHARPNESS_VARIANCE) {
 							failedChecks.add("Blur validation failed: image is not sufficiently sharp (sharpness "
 									+ Math.round(sharpnessVariance) + ").");
+						}
+
+						CampaignFormImageValidationDto contentValidation = FacadeProvider.getCampaignFormImageFacade()
+								.validateImageContent(imageBytes);
+						if (contentValidation != null && !contentValidation.isValid()) {
+							failedChecks.add(StringUtils.defaultIfBlank(contentValidation.getMessage(),
+									"Image contains prohibited content (human face/person or animal)."));
 						}
 					}
 				}
@@ -4703,15 +4844,22 @@ public class CampaignFormBuilder extends VerticalLayout {
 //					dataDto.setRecordgroupuuid(dataDto.getRecordgroupuuid());
 					dataDto.setRecordversion(incrementedVersion);
 					dataDto.setFormValues(entries);
+					dataDto.setFormType(campaignFormMeta.getFormType());
 
 					boolean proceedWithUnPublishaandUnVerify = false;
 					try {
 						dataDto = FacadeProvider.getCampaignFormDataFacade().saveCampaignFormData(dataDto);
 
 						proceedWithUnPublishaandUnVerify = true;
+					} catch (ValidationRuntimeException e) {
+						Notification.show(e.getMessage(), 8000, Position.MIDDLE)
+								.addThemeVariants(NotificationVariant.LUMO_ERROR);
+						return false;
 					} catch (Exception e) {
-						proceedWithUnPublishaandUnVerify = false;
-
+						logger.error("Error saving campaign form data", e);
+						Notification.show("Error saving data: " + e.getMessage(), 8000, Position.MIDDLE)
+								.addThemeVariants(NotificationVariant.LUMO_ERROR);
+						return false;
 					} finally {
 
 						if (proceedWithUnPublishaandUnVerify) {
@@ -4870,10 +5018,23 @@ public class CampaignFormBuilder extends VerticalLayout {
 					dataDto.setSource("WEB");
 //						dataDto.setRecordgroupuuid(dataDto.getUuid());
 					dataDto.setRecordversion(1L);
+					dataDto.setFormType(campaignFormMeta.getFormType());
+
 //						if (dataDto.getFormType())
-					dataDto = FacadeProvider.getCampaignFormDataFacade().saveCampaignFormData(dataDto);
-					Notification.show(I18nProperties.getString(Strings.dataSavedSuccessfully));
-					return true;
+					try {
+						dataDto = FacadeProvider.getCampaignFormDataFacade().saveCampaignFormData(dataDto);
+						Notification.show(I18nProperties.getString(Strings.dataSavedSuccessfully));
+						return true;
+					} catch (ValidationRuntimeException ex) {
+						Notification.show(ex.getMessage(), 8000, Position.MIDDLE)
+								.addThemeVariants(NotificationVariant.LUMO_ERROR);
+						return false;
+					} catch (Exception ex) {
+						logger.error("Error saving campaign form data", ex);
+						Notification.show("Error saving data: " + ex.getMessage(), 8000, Position.MIDDLE)
+								.addThemeVariants(NotificationVariant.LUMO_ERROR);
+						return false;
+					}
 //					}
 
 				} else {

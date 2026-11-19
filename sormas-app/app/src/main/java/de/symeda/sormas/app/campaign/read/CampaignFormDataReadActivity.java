@@ -20,6 +20,8 @@ package de.symeda.sormas.app.campaign.read;
 
 import android.content.Context;
 
+import androidx.appcompat.app.AlertDialog;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ import de.symeda.sormas.app.BaseReadActivity;
 import de.symeda.sormas.app.BaseReadFragment;
 import de.symeda.sormas.app.R;
 import de.symeda.sormas.app.backend.campaign.data.CampaignFormData;
+import de.symeda.sormas.app.backend.campaign.form.CampaignFormMeta;
 import de.symeda.sormas.app.backend.common.DaoException;
 import de.symeda.sormas.app.backend.common.DatabaseHelper;
 import de.symeda.sormas.app.campaign.edit.CampaignFormDataEditActivity;
@@ -37,6 +40,8 @@ import de.symeda.sormas.app.core.notification.NotificationType;
 import de.symeda.sormas.app.util.NavigationHelper;
 
 public class CampaignFormDataReadActivity extends BaseReadActivity<CampaignFormData> {
+
+    private List<String> intraCampaignsCategories = List.of("ICM", "ADMIN", "EAG-ICM", "EAG-ADMIN");
 
     public static void startActivity(Context context, String rootUuid, boolean finishInsteadOfUpNav) {
         BaseActivity.startActivity(context, CampaignFormDataReadActivity.class, buildBundle(rootUuid, finishInsteadOfUpNav));
@@ -49,20 +54,40 @@ public class CampaignFormDataReadActivity extends BaseReadActivity<CampaignFormD
 
     @Override
     public void goToEditView() {
-        CampaignFormDataEditActivity.startActivity(getContext(), getRootUuid());
+
+        if (intraCampaignsCategories.contains(DatabaseHelper.getCampaignFormDataDao().queryUuid(getRootUuid()).getCampaignFormMeta().getFormCategory())) {
+            if(DatabaseHelper.getCampaignFormDataDao().queryUuid(getRootUuid()).getIsvalidated()){
+                showCustomDialog(getContext(),
+                        "Data Entry Error",
+                        "Validated Record. Please contact System Administrator to update record.");
+            }else {
+                CampaignFormDataEditActivity.startActivity(getContext(), getRootUuid());
+            }
+        }else{
+            CampaignFormDataEditActivity.startActivity(getContext(), getRootUuid());
+        }
     }
 
     @Override
     public void goToDeleteRecord() throws DaoException {
-
         List<String> uuidx = new ArrayList<>();
         uuidx.add(getRootUuid());
-        DatabaseHelper.getCampaignFormDataDao().delete(uuidx);
-        NavigationHelper.navigateUpFrom(this);
-        NotificationHelper.showNotification(this, NotificationType.INFO, "Record Deleted");
 
-
-
+        if (intraCampaignsCategories.contains(DatabaseHelper.getCampaignFormDataDao().queryUuid(getRootUuid()).getCampaignFormMeta().getFormCategory())) {
+            if(DatabaseHelper.getCampaignFormDataDao().queryUuid(getRootUuid()).getIsvalidated()){
+                showCustomDialog(getContext(),
+                        "Data Delete Error",
+                        "Validated Record. Please contact System Administrator to delete this record.");
+            }else {
+                DatabaseHelper.getCampaignFormDataDao().delete(uuidx);
+                NavigationHelper.navigateUpFrom(this);
+                NotificationHelper.showNotification(this, NotificationType.INFO, "Record Deleted");
+            }
+        }else{
+            DatabaseHelper.getCampaignFormDataDao().delete(uuidx);
+            NavigationHelper.navigateUpFrom(this);
+            NotificationHelper.showNotification(this, NotificationType.INFO, "Record Deleted");
+        }
 
      //   DatabaseHelper.deleteCampaignRecord(getRootUuid());
      //   CampaignFormDataEditActivity.startActivity(getContext(), getRootUuid());
@@ -82,6 +107,20 @@ public class CampaignFormDataReadActivity extends BaseReadActivity<CampaignFormD
     protected int getActivityTitle() {
         return R.string.heading_campaign_form_data_read;
     }
+
+    private void showCustomDialog(Context context, String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(true);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
 
 
 }

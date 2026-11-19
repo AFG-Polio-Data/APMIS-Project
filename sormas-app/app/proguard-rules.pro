@@ -49,3 +49,7 @@
 -keep public class de.symeda.sormas.** {
   *;
 }
+-keep class ai.onnxruntime.** { *; }
+-keep interface ai.onnxruntime.** { *; }
+-keepclassmembers class ai.onnxruntime.** { *; }
+-dontwarn ai.onnxruntime.**

@@ -59,6 +59,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	public static final String ISVERIFIED = "isverified";
 	public static final String ISPUBLISHED = "ispublished";
+	public static final String ISVALIDATED = "isvalidated";
+
 
 	public static final String SOURCE = "source";
 	public static final String CREATED_BY = "creatingUser";
@@ -102,6 +104,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	private boolean isverified;
 	private boolean ispublished;
+	private boolean isvalidated;
+
 
 	private String source;
 	private String creatingUser;
@@ -191,6 +195,36 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.recordversion = recordversion;
 		this.changeDate = changeDate;
 	}
+	
+	public CampaignFormDataIndexDto(String uuid, String campaign, String form, Object formValues, String area,
+			Long rcode, String region, Long pcode, String district, Long dcode, String community, Integer clusternumber,
+			Long ccode, Date formDate, String formType, String source, String creatingUser, boolean isverified,
+			boolean ispublished, boolean isvalidated, Long recordversion, Date changeDate) {
+		this.uuid = uuid;
+		this.campaign = campaign;
+		this.form = form;
+		this.formValues = (List<CampaignFormDataEntry>) formValues;
+		this.area = area;
+		this.rcode = rcode;
+		this.region = region;
+		this.pcode = pcode;
+		this.district = district;
+		this.dcode = dcode;
+		this.community = community;
+		this.clusternumber = clusternumber;
+		this.ccode = ccode;
+		this.formDate = formDate;		
+		this.formType = formType;
+		this.source = source;
+		this.creatingUser = creatingUser;
+		this.isverified = isverified;
+		this.ispublished = ispublished;
+		this.isvalidated = isvalidated;
+		this.recordversion = recordversion;
+		this.changeDate = changeDate;
+	}
+	
+	
 
 	public CampaignFormDataIndexDto(String uuid, String campaign, String form, Object formValues, String area,
 			Long rcode, String region, Long pcode, String district, Long dcode, String community, Integer clusternumber,
@@ -239,6 +273,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 	}
 	
 //*
+	
+	//getByTimelinessAnalysis
 	public CampaignFormDataIndexDto(String form, String uuid, Long rcode, String campaign, String creatingUser,
 			String area, String region, String district, Long analysis_a, Long analysis_b) {
 		this.form = form;
@@ -253,10 +289,9 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.analysis_b = analysis_b;
 	}
 
+	//getCreatingUsersUserType
 	public CampaignFormDataIndexDto(String creatingUserType) {
-
 		this.creatingUserType = creatingUserType;
-
 	}
 
 	// FLW Contructor
@@ -274,6 +309,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 		this.error_status = "Error: Duplicate Tazkira number";
 	}
 	
+	
+	//getFlwDuplicateErrorAnalysis
 	public CampaignFormDataIndexDto(String area, String region, String district,
 			String source, String creatingUser, String personTitle, String error_status) {
 		this.area = area;
@@ -290,6 +327,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	
 	//*
+	
+	//getByCompletionAnalysisNew
 	public CampaignFormDataIndexDto(String area, String region, String district, String community, Integer clusternumer,
 			// Long clusternumber_,
 			Long ccode, Long analysis_a, Long analysis_b, Long analysis_c, Long analysis_d
@@ -366,6 +405,8 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 	
 	
 	//*
+	
+	//getByCompletionAnalysisAdmin
 	public CampaignFormDataIndexDto(
 			String area, String region, String district, String community, 
 			Integer clusternumer,
@@ -699,6 +740,14 @@ public class CampaignFormDataIndexDto implements Serializable, Cloneable {
 
 	public void setRecordversion(Long recordversion) {
 		this.recordversion = recordversion;
+	}
+	
+	public boolean isIsvalidated() {
+		return isvalidated;
+	}
+
+	public void setIsvalidated(boolean isvalidated) {
+		this.isvalidated = isvalidated;
 	}
 
 

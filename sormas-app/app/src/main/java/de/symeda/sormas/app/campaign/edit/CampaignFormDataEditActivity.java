@@ -129,6 +129,11 @@ public class CampaignFormDataEditActivity extends BaseEditActivity<CampaignFormD
         campaign = DatabaseHelper.getCampaignDao().queryUuid(campaignFormDataToSave.getCampaign().getUuid());
         campaignFormMeta = DatabaseHelper.getCampaignFormMetaDao().queryUuid(campaignFormDataToSave.getCampaignFormMeta().getUuid());
         campaignFormDataToSave.setFormCategory(campaignFormDataToSave.getCampaignFormMeta().getFormCategory());
+        if(!campaignFormDataToSave.getIsvalidated()){
+            campaignFormDataToSave.setIsvalidated(false);
+        }else{
+//            campaignFormDataToSave.setIsvalidated(true);
+        }
 
         final CampaignFormData campaignFormDataToSaveX = getStoredRootEntity();
 

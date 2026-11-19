@@ -712,6 +712,7 @@ public class UserFacadeEjb implements UserFacade {
 //			System.out.println(max+" --corrected---- "+first);
 //		}
 
+		System.out.println(userCriteria.getUserRole() + " USERCRITERIAUSERCRITERIAUSERCRITERIA "+ userCriteria.getUserRoleSet());
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<User> cq = cb.createQuery(User.class);
 		Root<User> user = cq.from(User.class);

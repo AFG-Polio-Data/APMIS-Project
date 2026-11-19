@@ -11781,6 +11781,66 @@ ALTER TABLE public.campaignformdata_history ALTER COLUMN region_id DROP NOT NULL
 INSERT INTO schema_version (version_number, comment) VALUES (499, 'Updating CampaignFormData_History Table to recieve null district and province values');
 
 
+alter table campaignformdata add column isvalidated boolean not null default false;
+
+CREATE OR REPLACE FUNCTION public.validate_data_byphase_after()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    v_formtype varchar(255);
+BEGIN
+    -- Get the form type from campaignformmeta using
+    -- campaignformdata.campaignformmeta_id as the reference.
+    SELECT cfm.formtype
+    INTO v_formtype
+    FROM public.campaignformmeta cfm
+    WHERE cfm.id = NEW.campaignformmeta_id;
+
+    IF TG_OP = 'INSERT' THEN
+
+        -- Set initial validation status based on metadata phase.
+        IF v_formtype = 'intra-campaign' THEN
+            NEW.isvalidated := FALSE;
+        ELSE
+            NEW.isvalidated := TRUE;
+        END IF;
+
+        RETURN NEW;
+    END IF;
+
+    IF TG_OP = 'UPDATE' THEN
+
+        -- Preserve validation for pre/post-campaign records.
+        IF v_formtype IS DISTINCT FROM 'intra-campaign' THEN
+            NEW.isvalidated := OLD.isvalidated;
+
+        -- Preserve validated intra-campaign records only
+        -- when the update originates from mobile.
+        ELSIF OLD.isvalidated IS TRUE
+              AND LOWER(COALESCE(NEW.source, '')) = 'mobile' THEN
+            NEW.isvalidated := TRUE;
+
+        -- Other intra-campaign updates require revalidation.
+        ELSE
+            NEW.isvalidated := FALSE;
+        END IF;
+
+        RETURN NEW;
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+;
+
+create trigger validate_data_trigger after
+insert
+    on
+    public.campaignformdata for each row execute function validate_data_byphase_after();
+
+INSERT INTO schema_version (version_number, comment) VALUES (500, 'Updating CampaignFormData Table to recieve Validate option');
+
 
 
 

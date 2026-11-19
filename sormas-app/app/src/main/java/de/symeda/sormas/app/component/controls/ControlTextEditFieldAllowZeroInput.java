@@ -210,7 +210,7 @@ public class ControlTextEditFieldAllowZeroInput extends ControlPropertyEditField
 
     @Override
     protected void setFieldValue(String value) {
-        System.out.println("SEtting fireld value i text edit field =============" + value);
+//        System.out.println("SEtting fireld value i text edit field =============" + value);
         input.setText(value);
     }
 

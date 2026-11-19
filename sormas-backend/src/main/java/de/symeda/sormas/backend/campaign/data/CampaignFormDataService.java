@@ -671,6 +671,22 @@ public class CampaignFormDataService extends AdoServiceWithUserFilter<CampaignFo
 		return em.createNativeQuery(cdvv).executeUpdate();
 	}
 	
+	public int validateData(String uuidx) {
+		// TODO Auto-generated method stub
+		String cdvv = "";
+		cdvv = "UPDATE campaignformdata SET isvalidated = true where uuid = '" + uuidx + "';";
+		System.err.println(cdvv + "Query to validated from the service ");
+		return em.createNativeQuery(cdvv).executeUpdate();
+	}
+
+	public int unValidateData(String uuidx) {
+		// TODO Auto-generated method stub
+		String cdvv = "";
+		cdvv = "UPDATE campaignformdata SET isvalidated = false where uuid = '" + uuidx + "';";
+		System.err.println(cdvv + "Query to unvallidating from the service ");
+		return em.createNativeQuery(cdvv).executeUpdate();
+	}
+	
 	public int updateReassignedDistrictData(String uuidx) {
 		// TODO Auto-generated method stub
 		String cdvv = "";

@@ -589,14 +589,14 @@ public class CampaignFormDataFragmentUtils {
 
 
     public static Object getExpressionValue(ExpressionParser expressionParser, List<CampaignFormDataEntry> formValues, String rawExpressionString) {
-        System.out.println("111111111 getExpressionValue" + rawExpressionString);
+//        System.out.println("111111111 getExpressionValue" + rawExpressionString);
 //        final String processedExpressionZeroString = getExpressionZeroToFalse(rawExpressionString);
 //        String cleanedexpressionString = processedExpressionZeroString;
 
 //        final String processedExpressionZeroString = getExpressionZeroToFalse(rawExpressionString);
         String cleanedexpressionString = rawExpressionString;
 
-        System.out.println("22222222222222 getExpressionValue" + cleanedexpressionString);
+//        System.out.println("22222222222222 getExpressionValue" + cleanedexpressionString);
 
         // ControlSwitchField stores YES/NO as enum values on Android, while
         // JSON expressions for a yes-no element use true/false. Build a

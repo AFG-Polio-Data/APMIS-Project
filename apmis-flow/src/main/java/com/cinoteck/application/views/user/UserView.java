@@ -97,7 +97,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	boolean overide = false;
 	private ComboBox<String> activeFilter;
 	private MultiSelectComboBox<UserRole> userRolesFilter = new MultiSelectComboBox<UserRole>();
-//	private ComboBox<UserRole> userRolesFilter = new ComboBox<>();
 
 	private ComboBox<AreaReferenceDto> areaFilter;
 	private ComboBox<RegionReferenceDto> regionFilter;
@@ -117,15 +116,13 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 	private UsersDataProvider usersDataProvider = new UsersDataProvider();
 	private ConfigurableFilterDataProvider<UserDto, Void, UserCriteria> filterDataProvider;
-	Set<UserRole> selectedRolesX = new HashSet(); // .getValue();
+	Set<UserRole> selectedRolesX = new HashSet(); 
 
 	UserForm userForm;
 
 	MenuBar menuBar = new MenuBar();
 
 	Button createUserButton = new Button(I18nProperties.getCaption(Captions.userNewUser));
-//	Button exportUsersButton = new Button(I18nProperties.getCaption(Captions.export));
-//	Button exportRolesButton = new Button(I18nProperties.getCaption(Captions.exportUserRoles));
 	Button bulkModeButton = new Button(I18nProperties.getCaption(Captions.actionEnterBulkEditMode));
 	Button leaveBulkModeButton = new Button(I18nProperties.getCaption(Captions.actionLeaveBulkEditMode));
 	GridMultiSelectionModel<UserDto> selectionModel;
@@ -149,6 +146,8 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	Anchor anchor = new Anchor("", I18nProperties.getCaption(Captions.export));
 	Paragraph countRowItems;
 	boolean isNewUser = false;
+	Set<UserRole> sortedUserRoles;
+	Set<UserRole> sortedUserRoless;
 
 	public UserView() {
 
@@ -162,8 +161,30 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		}
 		FacadeProvider.getI18nFacade().setUserLanguage(userProvider.getUser().getLanguage());
 		criteria = new UserCriteria();
+		
+		Set<UserRole> roles = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
+		Set<UserRole> roless = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
+		roles.remove(UserRole.BAG_USER);
+		roless.remove(UserRole.BAG_USER);
+                
+        roles = getHierarchicalManageableRoles(userProvider.getUser().getUserRoles(), roles);
+        roless = getHierarchicalManageableRolesSettings(userProvider.getUser().getUserRoles(), roless);
 
+		List<UserRole> rolesList = new ArrayList<>(roles);
+		List<UserRole> rolesListt = new ArrayList<>(roless);
+
+		// Sorting the user roles using comparator
+		Collections.sort(rolesList, new UserRoleCustomComparator());
+		Collections.sort(rolesListt, new UserRoleCustomComparator());
+        
+        // Preserves the custom sort order for the Vaadin dropdown
+		sortedUserRoles = new LinkedHashSet<>(rolesList);
+		
+		sortedUserRoless = new LinkedHashSet<>(rolesListt);
+		
 		criteria.setUserType(userProvider.getUser().getUsertype());
+		criteria.userRoleSet(sortedUserRoles);
+		criteria.area(userProvider.getUser().getArea());
 		filterDataProvider = usersDataProvider.withConfigurableFilter();
 		filterDataProvider.setFilter(criteria);
 
@@ -177,7 +198,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	}
 
 	public void addFilters() {
-		criteria = new UserCriteria();
 
 		int numberOfRows = filterDataProvider.size(new Query<>());
 		countRowItems = new Paragraph(I18nProperties.getCaption(Captions.rows) + numberOfRows);
@@ -233,6 +253,26 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 				ImportUsersDataDialog dialogx = new ImportUsersDataDialog();
 				dialogx.open();
+			}else {
+				
+				Notification notification = new Notification();
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				notification.setPosition(Position.MIDDLE);
+				Button closeButton = new Button(new Icon("lumo", "cross"));
+				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+				closeButton.getElement().setAttribute("aria-label", "Close");
+				closeButton.addClickListener(event -> {
+					notification.close();
+				});
+
+				Paragraph text = new Paragraph(
+						"Error : You do not have the required permissions to import users. Please contact your administrator.");
+
+				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+				layout.setAlignItems(Alignment.CENTER);
+
+				notification.add(layout);
+				notification.open();
 			}
 		});
 
@@ -247,14 +287,12 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			layout.add(importUsers);
 		}
 
-//		layout.add(anchor);
 		layout.addClassNames("row pl-4");
 
 		bulkModeButton = new Button(I18nProperties.getCaption(Captions.actionEnterBulkEditMode));
 		leaveBulkModeButton = new Button(I18nProperties.getCaption(Captions.actionLeaveBulkEditMode));
 		leaveBulkModeButton.setText(I18nProperties.getCaption(Captions.actionLeaveBulkEditMode));
 		bulkModeButton.addClassName("bulkActionButton");
-//		bulkModeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		Icon bulkModeButtonnIcon = new Icon(VaadinIcon.CLIPBOARD_CHECK);
 		bulkModeButton.setIcon(bulkModeButtonnIcon);
 
@@ -268,7 +306,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 		leaveBulkModeButton.setText(I18nProperties.getCaption(Captions.actionLeaveBulkEditMode));
 		leaveBulkModeButton.addClassName("leaveBulkActionButton");
-//		leaveBulkModeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 		leaveBulkModeButton.setVisible(false);
 		Icon leaveBulkModeButtonnIcon = new Icon(VaadinIcon.CLIPBOARD_CHECK);
 		leaveBulkModeButton.setIcon(leaveBulkModeButtonnIcon);
@@ -365,7 +402,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 				} else if (e.getValue().equals("All")){
 					criteria.active(null);
 				}else{
-//					activeFilter.setValue(null);
 					criteria.active(null);	
 				}
 			}
@@ -378,14 +414,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 		filterLayout.add(activeFilter);
 
-//		Recieve FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles(); into an appropriate collection 
-//		convert the system into a list 
-//		sort the items in the list and add them back 
-//		as fo
-//		if current user - who user remoe baguser and admin 
-//		while if current user is eoc remove cluster cordinatoe 
-//		Remove the role BagUser
-
 		userRolesFilter = new MultiSelectComboBox<>();
 		userRolesFilter.setWidth("145px");
 		userRolesFilter.setId(UserDto.USER_ROLES);
@@ -395,49 +423,20 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		userRolesFilter.getStyle().set("padding-top", "0px!important");
 		userRolesFilter.setClearButtonVisible(true);
 
-		Set<UserRole> roles = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
-		roles.remove(UserRole.BAG_USER);
-		List<UserRole> rolesList = new ArrayList<>(roles);
-
-		// Sorting the user roles using comparator
-		Collections.sort(rolesList, new UserRoleCustomComparator());
-		Set<UserRole> sortedUserRoles = new LinkedHashSet<>(rolesList);
-
-		userRolesFilter.setItems(sortedUserRoles);
-
-//		userRolesFilter.addValueChangeListener(e -> {
-//		    Set<UserRole> selectedRoles = e.getValue();
-//
-//		    // Convert UserRole to String (if needed, use another method to get role names)
-//		    Set<String> roleNames = selectedRoles.stream()
-//		        .map(UserRole::toString) // You could use .getName() if UserRole has a specific method for names
-//		        .collect(Collectors.toSet());
-//
-//		    // If no roles are selected, clear the filter criteria
-//		    if (selectedRoles.isEmpty()) {
-//		        criteria.userRoleSet(null);
-//		    } else {
-//		        criteria.userRoleSet(selectedRoles);
-//		    }
-//		    filterDataProvider.setFilter(criteria);
-//		    filterDataProvider.refreshAll();
-//		    updateRowCount();
-//		});
+		userRolesFilter.setItems(sortedUserRoless);
 
 		userRolesFilter.addValueChangeListener(e -> {
 			selectedRolesX = e.getValue();
 
-			String names = selectedRolesX.stream().map(UserRole::toString) // or use another method to get a specific
-																			// string representation of UserRole
+			String names = selectedRolesX.stream().map(UserRole::toString) 
 					.collect(Collectors.joining(","));
 			if (selectedRolesX.isEmpty()) {
-//				criteria.userRole(null);
 				criteria.userRoleSet(null);
+				System.out.println("sortedUserRolessortedUserRolessortedUserRoles " + sortedUserRoless);
+				criteria.userRoleSet(sortedUserRoless);
 			} else {
-//				criteria.userRole(null);
 				criteria.userRoleSet(null);
 				criteria.userRoleSet(selectedRolesX);
-//		        selectedRolesLabel.setText("Selected: " + String.join(", ", selectedRoles.stream().map(UserRole::toString).collect(Collectors.toList())));
 			}
 
 			System.out.println(criteria.getUserRole() + "user roles =====set " + criteria.getUserRoleSet()
@@ -446,20 +445,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			filterDataProvider.refreshAll();
 			updateRowCount();
 		});
-
-//		// Add a custom label to show all selected roles
-//		Div selectedRolesLabel = new Div();
-//		selectedRolesLabel.getStyle().set("font-size", "0.8em");
-//		selectedRolesLabel.getStyle().set("color", "var(--lumo-secondary-text-color)");
-//
-//		userRolesFilter.addValueChangeListener(e -> {
-//		    Set<UserRole> selectedRoles = e.getValue();
-//		    if (selectedRoles.isEmpty()) {
-//		        selectedRolesLabel.setText("");
-//		    } else {
-//		        selectedRolesLabel.setText("Selected: " + String.join(", ", selectedRoles.stream().map(UserRole::toString).collect(Collectors.toList())));
-//		    }
-//		});
 
 		filterLayout.add(userRolesFilter);
 
@@ -470,7 +455,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		areaFilter.setId(CaseDataDto.AREA);
 		areaFilter.setWidth("145px");
 
-		// areaFilter.setWidth(200, Unit.PIXELS);
 		areaFilter.setLabel(I18nProperties.getPrefixCaption(CaseDataDto.I18N_PREFIX, CaseDataDto.AREA));
 		areaFilter.setPlaceholder(I18nProperties.getCaption(Captions.area));
 		areaFilter.getStyle().set("margin-left", "0.1rem");
@@ -576,7 +560,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			if (districtFilter != null) {
 				districtFilter.clear();
 				if (userProvider.getUser().getRegion().getUuid() != null) {
-//					districtFilter.setItems();
 					if (userProvider.getUser().getLanguage().toString().equals("Pashto")) {
 						districtFilter.setItems(FacadeProvider.getDistrictFacade()
 								.getAllActiveByRegionPashto(userProvider.getUser().getRegion().getUuid()));
@@ -729,13 +712,11 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			notification.add(layout);
 			notification.open();
 			return;
+		}else {
+			UsersBulkEditDialog dialog = new UsersBulkEditDialog(selectedItems, userDto, filterDataProvider);
+			dialog.open();
 		}
 
-		// Bulk user editing is not implemented. This method used to instantiate
-		// BulkUsersEditDataDialog, a class referenced in 9568e56b04 but never committed to
-		// the repository, which meant apmis-flow could not compile from a clean checkout.
-		// The guard clause above is kept so an empty selection still reports an error;
-		// a non-empty selection currently does nothing. Tracked in Iyanuu/APMIS-Project#12.
 	}
 
 	private void configureGridMultiSelect() {
@@ -786,7 +767,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		UserProvider usrProv = new UserProvider();
 		I18nProperties.setUserLanguage(usrProv.getUser().getLanguage());
 		String value = usrdto.getUserRoles().toString();
-		// System.out.println(I18nProperties.getUserLanguage() + "o//: "+value);
 		return value.replace("[", "").replace("]", "").replace("null,", "").replace("null", "");
 	}
 
@@ -809,7 +789,7 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			return checkbox;
 		});
 
-		criteria = new UserCriteria();
+//		criteria = new UserCriteria();
 		grid.setSelectionMode(SelectionMode.SINGLE);
 		grid.setMultiSort(true, MultiSortPriority.APPEND);
 		grid.setSizeFull();
@@ -900,49 +880,206 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 		grid.setItems(filterDataProvider);
 
+//		if (userProvider.hasUserRight(UserRight.USER_EDIT)) {
+//
+//			grid.addSelectionListener(event -> {
+//				event.getFirstSelectedItem().ifPresent(item -> {
+//					
+//					Set<UserRole> loggedInRoles = userProvider.getUser().getUserRoles();
+//					Set<UserRole> targetRoles = item.getUserRoles();
+//
+//					boolean isAdmin = loggedInRoles != null && loggedInRoles.contains(UserRole.ADMIN);
+//
+//					if (isAdmin) {
+//						// Admins are exempt and can open anyone (including other Admins)
+//						editUser(item, false);
+//					} else {
+//						// Calculate max rank of logged-in user
+//						int loggedInMaxRank = -1;
+//						if (loggedInRoles != null) {
+//							for (UserRole r : loggedInRoles) {
+//								int rank = getRoleRank(r);
+//								if (rank > loggedInMaxRank) {
+//									loggedInMaxRank = rank;
+//								}
+//							}
+//						}
+//
+//						// Calculate max rank of the target user being clicked
+//						int targetMaxRank = -1;
+//						if (targetRoles != null) {
+//							for (UserRole r : targetRoles) {
+//								int rank = getRoleRank(r);
+//								if (rank > targetMaxRank) {
+//									targetMaxRank = rank;
+//								}
+//							}
+//						}
+//
+//						// Block access if target user is at the same or higher jurisdiction level
+//						if (targetMaxRank >= loggedInMaxRank) {
+//							Notification notification = new Notification();
+//							notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//							notification.setPosition(Position.MIDDLE);
+//							
+//							Button closeButton = new Button(new Icon("lumo", "cross"));
+//							closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+//							closeButton.getElement().setAttribute("aria-label", "Close");
+//							closeButton.addClickListener(e -> notification.close());
+//							
+//							Paragraph text = new Paragraph("Access Denied: You cannot edit users at or above your jurisdiction level.");
+//							HorizontalLayout noteLayout = new HorizontalLayout(text, closeButton);
+//							noteLayout.setAlignItems(Alignment.CENTER);
+//							
+//							notification.add(noteLayout);
+//							notification.open();
+//						} else {
+//							// Allow edit for subordinate users
+//							editUser(item, false);
+//						}
+//					}
+//
+//					grid.deselectAll(); // Deselect all items after processing the selected item
+//				});
+//			});
+//		}
+		
 		if (userProvider.hasUserRight(UserRight.USER_EDIT)) {
 
-			grid.addSelectionListener(event -> {
-				event.getFirstSelectedItem().ifPresent(item -> {
-					editUser(item, false);
-					grid.deselectAll(); // Deselect all items after processing the selected item
-				});
-			});
+		    grid.addSelectionListener(event -> {
+		        event.getFirstSelectedItem().ifPresent(item -> {
+		            
+		            Set<UserRole> loggedInRoles = userProvider.getUser().getUserRoles();
+		            Set<UserRole> targetRoles = item.getUserRoles();
 
-//			grid.addSelectionListener(event -> {
-//				editUser(event.getFirstSelectedItem().get(), false);
-//				grid.deselectAll();
-//			});
+		            boolean isAdmin = loggedInRoles != null && loggedInRoles.contains(UserRole.ADMIN);
+
+		            /* ---- NEW: self-edit exception so users can edit themselves ---- */
+		            boolean isEditingSelf = item.getUuid() != null
+		                    && item.getUuid().equals(userProvider.getUser().getUuid());
+		            /* ---------------------------------- */
+		            
+		            if (isAdmin || isEditingSelf) {
+		                // Admins are exempt and can open anyone (including other Admins)
+		                editUser(item, false);
+		            } else {
+		                int loggedInMaxRank = maxRank(loggedInRoles);
+		                int targetMaxRank   = maxRank(targetRoles);
+
+		                if (targetMaxRank >= loggedInMaxRank) {
+		                    showAccessDenied(
+		                        "Access Denied: Only users assigned to lower Geographical "
+		                      + "jurisdiction levels can be edited.");
+		                } else {
+		                    editUser(item, false);
+		                }
+		                
+		                // Calculate max rank of logged-in user
+//		                int loggedInMaxRank = -1;
+//		                if (loggedInRoles != null) {
+//		                    for (UserRole r : loggedInRoles) {
+//		                        int rank = getRoleRank(r);
+//		                        if (rank > loggedInMaxRank) {
+//		                            loggedInMaxRank = rank;
+//		                        }
+//		                    }
+//		                }
+//
+//		                // Calculate max rank of the target user being clicked
+//		                int targetMaxRank = -1;
+//		                if (targetRoles != null) {
+//		                    for (UserRole r : targetRoles) {
+//		                        int rank = getRoleRank(r);
+//		                        if (rank > targetMaxRank) {
+//		                            targetMaxRank = rank;
+//		                        }
+//		                    }
+//		                }
+//
+//		                // Block access if target user is at the same or higher jurisdiction level
+//		                if (targetMaxRank >= loggedInMaxRank) {
+//		                    Notification notification = new Notification();
+//		                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+//		                    notification.setPosition(Position.MIDDLE);
+//		                    
+//		                    Button closeButton = new Button(new Icon("lumo", "cross"));
+//		                    closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+//		                    closeButton.getElement().setAttribute("aria-label", "Close");
+//		                    closeButton.addClickListener(e -> notification.close());
+//		                    
+//		                    Paragraph text = new Paragraph( "Access Denied: Only users assigned to lower Geographical jurisdiction levels can be edited.");
+//		                    HorizontalLayout noteLayout = new HorizontalLayout(text, closeButton);
+//		                    noteLayout.setAlignItems(Alignment.CENTER);
+//		                    
+//		                    notification.add(noteLayout);
+//		                    notification.open();
+//		                } else {
+//		                    // Allow edit for subordinate users
+//		                    editUser(item, false);
+//		                }
+		            }
+
+		            grid.deselectAll(); // Deselect all items after processing the selected item
+		        });
+		    });
 		}
 
 		return;
 
 	}
+	
+	private static int maxRank(Set<UserRole> roles) {
+	    if (roles == null) return -1;
+	    int max = -1;
+	    for (UserRole r : roles) max = Math.max(max, getRoleRank(r));
+	    return max;
+	}
+
+	private void showAccessDenied(String message) {
+	    Notification n = new Notification();
+	    n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+	    n.setPosition(Position.MIDDLE);
+	    Button closeBtn = new Button(new Icon("lumo", "cross"));
+	    closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+	    closeBtn.addClickListener(e -> n.close());
+	    Paragraph text = new Paragraph(message);
+	    HorizontalLayout l = new HorizontalLayout(text, closeBtn);
+	    l.setAlignItems(Alignment.CENTER);
+	    n.add(l);
+	    n.open();
+	}
 
 	private void configureForm(UserDto user) {
+		
+		UserDto currentUser = userProvider.getUser();
 
 		I18nProperties.setUserLanguage(userProvider.getUser().getLanguage());
+		
+ 
 		userForm = new UserForm(regions, provinces, districts, user, false);
+		
+//		if (currentUser.getArea() != null) {
+//			userForm.region.setValue(currentUser.getArea());
+//		} else if (currentUser.getRegion() != null) {
+//			userForm.province.setValue(currentUser.getRegion());
+//		}else if (currentUser.getDistrict() != null) {
+//			userForm.district.setValue(currentUser.getDistrict());
+//		}else if (currentUser.getDistricts().size() > 0) {
+//			userForm.districtMulti.setValue(currentUser.getDistricts());
+//		}
+		
 		userForm.setSizeFull();
-//		form.addUserFieldValueChangeEventListener(this::suggestUserName);
-//	    form.addResetPasswordListener(event -> resetUserPassword(event, user)); // Use the resetUserPassword method
 		userForm.addResetPasswordListener(this::resetUserPassWord);
 		userForm.addSaveListener(this::saveUser);
 		userForm.addDeleteListener(this::deleteContact);
 		userForm.addCloseListener(e -> {
-//			UI.getCurrent().getPage().reload();
 			closeEditor();
-
-//			UI.getCurrent().getPage().reload();
-
-//			grid.deselectAll();
 		});
 
 	}
+	
 
 	private Component getContent() {
-
-		// content.setFlexGrow(2, grid);
 		mainContainer.setFlexGrow(4, userForm);
 		mainContainer.addClassNames("content");
 		mainContainer.setSizeFull();
@@ -958,7 +1095,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		mainContainer.add(userForm);
 
 		isNewUser = false;
-		// configureForm(userr);//this make sure the userform dialog is a new container
 		userForm.setUser(userr);
 		userForm.setVisible(true);
 		userForm.setSizeFull();
@@ -968,55 +1104,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		String initialUserName = userr.getUserName();
 		userForm.save.addClickListener(event -> userForm.validateAndSaveEdit(userr, initialUserName));
 	}
-
-	// new user... dialog with no data in it
-//	public void editUser(boolean isEdMode) {
-//
-//		isNewUser = true;
-//		UserDto user = new UserDto();
-//
-//		mainContainer.remove(userForm);
-//		configureForm(user);
-//		mainContainer.add(userForm);
-//
-//		// configureForm(user); //this make sure the userform dialog is a new container
-//		userForm.createPassword.setVisible(false);
-//		userForm.setUser(user);
-////		form.addUserFieldValueChangeEventListener(this::suggestUserName);
-//		userForm.setVisible(true);
-//		userForm.setSizeFull();
-//		grid.setVisible(false);
-//		setFiltersVisible(false);
-//		userForm.binder.forField(userForm.userName)
-//		.withValidator(e->validateUserName(userForm.userName.getValue(), userForm.save))
-//		.asRequired(I18nProperties.getCaption(Captions.pleaseFillOutFirstLastname))
-//		.bind(UserDto::getUserName, UserDto::setUserName);
-//		userForm.save.addClickListener(event -> userForm.validateAndSaveNew());
-//		userForm.firstName.addValueChangeListener(e -> suggestUserNameWorking());
-//		userForm.lastName.addValueChangeListener(e -> suggestUserNameWorking());
-//		userForm.userName.addValueChangeListener(e -> checkIfUserNameExists());
-//	}
-//	
-//	public static ValidationResult validateUserName(String value, Button save) {
-//	try {
-//		System.out.println(value + "Value collection ");
-//		UserDto checkNewusernamefromDB = FacadeProvider.getUserFacade().getByUserName(value);
-//
-//		if (checkNewusernamefromDB != null) {
-//			save.setEnabled(false);
-//			return ValidationResult.error("Username Exists");
-//		} else {
-////			UserRole.validate(value);
-//			save.setEnabled(true);
-//
-//			return ValidationResult.ok();
-//		}
-//
-//	} catch (Exception e) {
-////    	Notification.show(e.getMessage());
-//		return ValidationResult.error("Username culd not be validated ");
-//	}
-//}
 
 	public void editUser(boolean isEditMode) {
 		isNewUser = true;
@@ -1051,7 +1138,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			if (checkNewusernamefromDB != null) {
 				userForm.save.setEnabled(false);
 				userForm.userName.clear();
-//	            ValidationResult.error("Username Exists");
 				return ValidationResult.error("Username Exists");
 			} else {
 				userForm.save.setEnabled(true);
@@ -1104,9 +1190,7 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	private void setFiltersVisible(boolean state) {
 		displayFilters.setVisible(state);
 		createUserButton.setVisible(state);
-//		exportUsersButton.setVisible(state);
 		importUsers.setVisible(state);
-//		exportRolesButton.setVisible(state);
 		bulkModeButton.setVisible(state);
 		exportUsers.setVisible(state);
 		exportMobileUsers.setVisible(state);
@@ -1192,14 +1276,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 		}
 
 	}
-//
-//	private void suggestUserName(UserForm.UserFieldValueChangeEvent event) {
-//
-//		UserForm formLayout = (UserForm) event.getSource();
-//
-//		formLayout.suggestUserName(isEditingModeActive);
-//		
-//	}
 
 	private void suggestUserNameWorking() {
 
@@ -1207,39 +1283,28 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 			UserDto checkNewusernamefromDB = FacadeProvider.getUserFacade().getByUserName(userForm.userName.getValue());
 			if (checkNewusernamefromDB == null) {
-//				fireEvent(new SaveEvent(this, binder.getBean()));
 				userForm.userName.setValue(
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 			} else {
-//				System.out.println("else11111111111 kicked ----------------------------");
-
 				userForm.userName.setErrorMessage("Username exists");
 			}
 
 		} else {
 
-//			System.out.println("else kicked ----------------------------+ userForm.lastName.getValue()" + userForm.lastName.getValue());
-//			System.out.println("else kicked ---------------------------- userForm.userName.getValue() +" + userForm.userName.getValue() );
-
 			UserDto checkNewusernamefromDB = FacadeProvider.getUserFacade()
 					.getByUserName(userForm.userName.getValue() + userForm.lastName.getValue());
 
-//			System.out.println("else kicked ----------------------------" + checkNewusernamefromDB +  "yyyy "+userForm.userName.getValue() + "xxx" + userForm.lastName.getValue());
-
 			if (checkNewusernamefromDB == null) {
-//				fireEvent(new SaveEvent(this, binder.getBean()));
 				userForm.userName.setValue(
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 				userForm.save.setEnabled(true);
 			} else {
 
-//				System.out.println("222222222222222 kicked ----------------------------");
 				userForm.userName.setValue(
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 				userForm.save.setEnabled(false);
 				Notification notification = Notification.show("Username Exists", 5000, Position.MIDDLE);
 				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-//				Notification.show("Username Exists");
 
 				userForm.userName.addValueChangeListener(e -> {
 					UserDto checkNewusernamefromDBx = FacadeProvider.getUserFacade().getByUserName(e.getValue());
@@ -1253,9 +1318,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 				});
 
-//				userForm.save.setTooltipText("Username exists");
-//				userForm.userName.setThemeName("error");
-//				userForm.userName.setErrorMessage("Username exists");
 			}
 
 		}
@@ -1269,7 +1331,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			UserDto checkNewusernamefromDB = FacadeProvider.getUserFacade().getByUserName(userForm.userName.getValue());
 
 			if (checkNewusernamefromDB == null) {
-//				fireEvent(new SaveEvent(this, binder.getBean()));
 				userForm.userName.setValue(
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 			} else {
@@ -1305,7 +1366,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 					+ userForm.userName.getValue() + "xxx" + userForm.lastName.getValue());
 
 			if (checkNewusernamefromDB == null) {
-//				fireEvent(new SaveEvent(this, binder.getBean()));
 				userForm.userName.setValue(
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 				userForm.save.setEnabled(true);
@@ -1316,9 +1376,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 						UserHelper.getSuggestedUsername(userForm.firstName.getValue(), userForm.lastName.getValue()));
 				userForm.save.setEnabled(false);
 				Notification.show("Username Exists", 5000, Position.MIDDLE);
-//				NotificationVariant.LUMO_ERROR;
-
-//				Notification.show("Username Exists");
 
 				userForm.userName.addValueChangeListener(e -> {
 					UserDto checkNewusernamefromDBx = FacadeProvider.getUserFacade().getByUserName(e.getValue());
@@ -1332,9 +1389,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 				});
 
-//				userForm.save.setTooltipText("Username exists");
-//				userForm.userName.setThemeName("error");
-//				userForm.userName.setErrorMessage("Username exists");
 			}
 
 		}
@@ -1356,8 +1410,7 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 			VerticalLayout infoLayout = new VerticalLayout();
 
 			newUserPop.setHeaderTitle(I18nProperties.getString(Strings.newUserPassword));
-			newUserPop.getElement().executeJs("this.$.overlay.setAttribute('theme', 'center');"); // Center the dialog
-																									// content
+			newUserPop.getElement().executeJs("this.$.overlay.setAttribute('theme', 'center');"); 
 
 			Paragraph infoText = new Paragraph(I18nProperties.getString(Strings.pleaseCopyPassword));
 			H3 username = new H3(I18nProperties.getCaption(Captions.Login_username) + " : " + userName);
@@ -1492,21 +1545,23 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 
 		@Override
 		public int compare(UserRole role1, UserRole role2) {
-			// Get the indexes of the roles in the custom order
 			int index1 = indexOfRole(role1);
 			int index2 = indexOfRole(role2);
-
-			// Compare based on their indexes in the custom order
+			
+			if (index1 == customOrder.length && index2 == customOrder.length) {
+				return role1.toString().compareToIgnoreCase(role2.toString());
+			}
 			return Integer.compare(index1, index2);
 		}
 
 		private int indexOfRole(UserRole role) {
+			String caption = role.toString(); 
 			for (int i = 0; i < customOrder.length; i++) {
-				if (customOrder[i].equals(role.name())) {
+				if (customOrder[i].equalsIgnoreCase(caption)) {
 					return i;
 				}
 			}
-			return customOrder.length; // Role not found, place it at the end
+			return customOrder.length; 
 		}
 	}
 	
@@ -1525,7 +1580,6 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	        sb.append(csv(user.getDistrict() != null ? user.getDistrict().getCaption() : "")).append(",");
 	        sb.append(csv(joinClusters(user.getCommunitynos()))).append(",");
 	        sb.append(csv(joinForms(user.getFormAccess()))).append(",");
-//	        sb.append(csv(joinRoles(getDisplayableRolesForFrontend(user.getUserRoles())))).append(",");
 	        sb.append(csv(joinRoles(user.getUserRoles()))).append(",");
 	        sb.append(csv(user.isActive() ? "Active" : "Inactive")).append("\n");
 	    }
@@ -1586,6 +1640,140 @@ public class UserView extends VerticalLayout implements RouterLayout, BeforeEnte
 	    assignable.removeAll(currentUserRoles);
 	    
 	    return Collections.unmodifiableSet(assignable);
+	}
+
+	public static Set<UserRole> getHierarchicalManageableRoles(Set<UserRole> loggedInUserRoles, Set<UserRole> availableRoles) {
+		Set<UserRole> assignableRoles = new HashSet<>(availableRoles);
+
+		if (loggedInUserRoles == null || loggedInUserRoles.isEmpty()) {
+			return assignableRoles;
+		}
+
+		if (loggedInUserRoles.contains(UserRole.ADMIN)) {
+			return assignableRoles;
+		}
+
+		int maxRank = -1;
+		for (UserRole role : loggedInUserRoles) {
+			int rank = getRoleRank(role);
+			if (rank > maxRank) {
+				maxRank = rank;
+			}
+		}
+
+		final int userRank = maxRank;
+
+		assignableRoles.removeIf(targetRole -> {
+			if (targetRole == UserRole.ADMIN) {
+				return true; 
+			}			
+			
+			int targetRank = getRoleRank(targetRole);
+			
+			return targetRank > userRank; 
+		});
+
+		return assignableRoles;
+	}
+	
+	public static Set<UserRole> getHierarchicalManageableRolesSettings(Set<UserRole> loggedInUserRoles, Set<UserRole> availableRoles) {
+		Set<UserRole> assignableRoles = new HashSet<>(availableRoles);
+
+		if (loggedInUserRoles == null || loggedInUserRoles.isEmpty()) {
+			return assignableRoles;
+		}
+
+		if (loggedInUserRoles.contains(UserRole.ADMIN)) {
+			return assignableRoles;
+		}
+
+		int maxRank = -1;
+		for (UserRole role : loggedInUserRoles) {
+			int rank = getRoleRank(role);
+			if (rank > maxRank) {
+				maxRank = rank;
+			}
+		}
+
+		final int userRank = maxRank;
+
+		assignableRoles.removeIf(targetRole -> {
+			if (targetRole == UserRole.ADMIN) {
+				return true; 
+			}
+			
+			if (targetRole == UserRole.PUBLISH_USER || targetRole == UserRole.EDITOR_USER) {
+	            return true;
+	        }
+			
+			int targetRank = getRoleRank(targetRole);
+			
+			return targetRank > userRank; 
+		});
+
+		return assignableRoles;
+	}
+
+	private static int getRoleRank(UserRole role) {
+		if (role == null) return 0;
+		
+		switch (role) {
+			case ADMIN:
+				return 60;
+				
+			case COMMUNITY_INFORMANT: 
+			case NATIONAL_USER:
+			case NATIONAL_OBSERVER:
+			case NATIONAL_CLINICIAN:
+			case POE_NATIONAL_USER:
+				return 50;
+				
+			case AREA_ADMIN_SUPERVISOR: 
+			case AREA_SURVEILLANCE_SUPERVISOR: 
+			case AREA_STATE_OBSERVER: 
+				return 40;
+				
+			case ADMIN_SUPERVISOR: 
+			case SURVEILLANCE_SUPERVISOR: 
+			case STATE_OBSERVER: 
+			case CASE_SUPERVISOR:
+			case CONTACT_SUPERVISOR:
+			case EVENT_OFFICER:
+			case POE_SUPERVISOR:
+				return 30;
+				
+			case SURVEILLANCE_OFFICER:
+			case DISTRICT_OBSERVER:
+			case CASE_OFFICER:
+			case CONTACT_OFFICER:
+				return 20;
+				
+			case COMMUNITY_OFFICER: 
+				return 10;
+				
+			case REST_USER: 
+			case PUBLISH_USER:
+			case EDITOR_USER:
+			case BAG_USER:
+			case LAB_USER:
+			case EXTERNAL_LAB_USER:
+			case HOSPITAL_INFORMANT:
+			case POE_INFORMANT:
+				return 0;
+				
+			default:
+				if (role.getJurisdictionLevel() != null) {
+					switch (role.getJurisdictionLevel()) {
+						case NATION: return 50;
+						case AREA: return 40;
+						case REGION: return 30;
+						case DISTRICT: return 20;
+						case COMMUNITY: return 10;
+						default: return 0; 
+					}
+				}
+				return 0;
+		}
 	}
 
 	@Override

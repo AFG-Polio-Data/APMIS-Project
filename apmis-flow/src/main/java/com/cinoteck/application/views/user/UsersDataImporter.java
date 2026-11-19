@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +58,6 @@ public class UsersDataImporter extends DataImporter {
 
 	private final UserFacade userFacade;
 	private UI currentUI;
-	private Set<UserRole> userRole = new HashSet<>();
 	
 	File file;
 	private static final String R_CODE = "RCode";
@@ -64,12 +65,38 @@ public class UsersDataImporter extends DataImporter {
 	private static final String D_CODE = "DCode";
 	private static final String C_CODE = "CCode";
 
+	
+	
+	private final Set<UserRole> editorAssignableRoles;
+	private final int editorMaxRank;
+	private final JurisdictionLevel editorJurisdiction;
+	private final AreaReferenceDto     editorArea;
+	private final RegionReferenceDto   editorRegion;
+	private final DistrictReferenceDto editorDistrict;
+	private final Set<DistrictReferenceDto>  editorDistricts;
+	private final Set<CommunityReferenceDto> editorCommunities;
+	
 	// file_, true, userDto, campaignForm.getUuid(), campaignReferenceDto,
 	// ValueSeparator.COMMA
 	public UsersDataImporter(File inputFile, boolean hasEntityClassRow, UserDto currentUser,
 			ValueSeparator csvSeparator) throws IOException {
 		super(inputFile, hasEntityClassRow, currentUser, csvSeparator);
 		this.userFacade = FacadeProvider.getUserFacade();
+		
+	    Set<UserRole> loggedInRoles = currentUser != null ? currentUser.getUserRoles() : null;
+
+	    this.editorMaxRank        = maxRank(loggedInRoles);
+	    this.editorJurisdiction   = (loggedInRoles == null || loggedInRoles.isEmpty())
+	                                ? null
+	                                : UserRole.getJurisdictionLevel(loggedInRoles);
+	    this.editorAssignableRoles = computeAssignableRoles(loggedInRoles);
+
+	    this.editorArea        = currentUser != null ? currentUser.getArea()     : null;
+	    this.editorRegion      = currentUser != null ? currentUser.getRegion()   : null;
+	    this.editorDistrict    = currentUser != null ? currentUser.getDistrict() : null;
+	    this.editorDistricts   = currentUser != null ? currentUser.getDistricts() : null;
+	    this.editorCommunities = currentUser != null ? currentUser.getCommunity() : null;
+	    
 	}
 
 	@Override
@@ -369,6 +396,8 @@ this.file = file;
 			
 			
 			UserDto newUserLine = UserDto.build();
+			Set<UserRole> userRole = new LinkedHashSet<>();     // ✅ per-row
+
 			
 //			System.out.println("++++++++++++++++existingPopulationData.NOTisPresent()++++++++++++++++ ");
 			newUserLine.setArea(finalArea);
@@ -379,6 +408,14 @@ this.file = file;
 			newUserLine.setUsertype(currentUser.getUsertype());			//define logic to accept other userroles except for, mobile user
 			userRole.add(UserRole.REST_USER);
 			userRole.add(UserRole.COMMUNITY_OFFICER);
+			
+			String hierarchyError = validateAgainstHierarchyAndScope(
+					userRole, finalArea, finalRegion, finalDistrict, finalCommunity);
+			if (hierarchyError != null) {
+			    writeImportError(values, hierarchyError);
+			    return ImportLineResult.ERROR;
+			}
+			
 			
 			newUserLine.setUserRoles(userRole);
 			newUserLine.setFormAccess(finalFormAccess);
@@ -472,29 +509,189 @@ this.file = file;
 		}
 	}
 	
-	
-
 	@Override
 	protected boolean executeDefaultInvoke(PropertyDescriptor pd, Object element, String entry,
-			String[] entryHeaderPath) throws InvocationTargetException, IllegalAccessException, ImportErrorException {
+	        String[] entryHeaderPath) throws InvocationTargetException, IllegalAccessException, ImportErrorException {
 
-		final boolean invokingSuccessful = super.executeDefaultInvoke(pd, element, entry, entryHeaderPath);
-		final Class<?> propertyType = pd.getPropertyType();
-		if (propertyType.isAssignableFrom(RegionReferenceDto.class)) {
-			final UserDto currentUserDto = userFacade.getByUuid(currentUser.getUuid());
-			final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(currentUserDto.getUserRoles());
-			if (jurisdictionLevel == JurisdictionLevel.REGION
-					&& !currentUserDto.getRegion().getCaption().equals(entry)) {
-				throw new ImportErrorException(
-						I18nProperties.getValidationError(Validations.importEntryRegionNotInUsersJurisdiction, entry,
-								buildEntityProperty(entryHeaderPath)));
-			}
-		}
-		return invokingSuccessful;
+	    final boolean invokingSuccessful = super.executeDefaultInvoke(pd, element, entry, entryHeaderPath);
+
+	    final Class<?> propertyType = pd.getPropertyType();
+	    if (propertyType.isAssignableFrom(RegionReferenceDto.class)) {
+	        final UserDto currentUserDto = userFacade.getByUuid(currentUser.getUuid());
+	        Set<UserRole> roles = currentUserDto.getUserRoles();
+
+	        // Guard: a freshly constructed UserProvider has null roles → NPE otherwise
+	        if (roles != null && !roles.isEmpty()) {
+	            final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(roles);
+	            if (jurisdictionLevel == JurisdictionLevel.REGION
+	                    && currentUserDto.getRegion() != null
+	                    && !currentUserDto.getRegion().getCaption().equals(entry)) {
+	                throw new ImportErrorException(
+	                        I18nProperties.getValidationError(
+	                                Validations.importEntryRegionNotInUsersJurisdiction,
+	                                entry, buildEntityProperty(entryHeaderPath)));
+	            }
+	        }
+	    }
+	    return invokingSuccessful;
 	}
+
+//	@Override
+//	protected boolean executeDefaultInvoke(PropertyDescriptor pd, Object element, String entry,
+//			String[] entryHeaderPath) throws InvocationTargetException, IllegalAccessException, ImportErrorException {
+//
+//		final boolean invokingSuccessful = super.executeDefaultInvoke(pd, element, entry, entryHeaderPath);
+//		final Class<?> propertyType = pd.getPropertyType();
+//		if (propertyType.isAssignableFrom(RegionReferenceDto.class)) {
+//			final UserDto currentUserDto = userFacade.getByUuid(currentUser.getUuid());
+//			final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(currentUserDto.getUserRoles());
+//			if (jurisdictionLevel == JurisdictionLevel.REGION
+//					&& !currentUserDto.getRegion().getCaption().equals(entry)) {
+//				throw new ImportErrorException(
+//						I18nProperties.getValidationError(Validations.importEntryRegionNotInUsersJurisdiction, entry,
+//								buildEntityProperty(entryHeaderPath)));
+//			}
+//		}
+//		return invokingSuccessful;
+//	}
 
 	@Override
 	protected String getErrorReportFileName() {
 		return "user_Import_error_report.csv";
 	}
+	
+	private static int maxRank(Set<UserRole> roles) {
+	    if (roles == null) return 0;
+	    int max = 0;
+	    for (UserRole r : roles) max = Math.max(max, getRoleRank(r));
+	    return max;
+	}
+
+	private static int getRoleRank(UserRole role) {
+	    if (role == null) return 0;
+	    switch (role) {
+	        case ADMIN: return 60;
+	        case COMMUNITY_INFORMANT: case NATIONAL_USER: case NATIONAL_OBSERVER:
+	        case NATIONAL_CLINICIAN:  case POE_NATIONAL_USER: return 50;
+	        case AREA_ADMIN_SUPERVISOR: case AREA_SURVEILLANCE_SUPERVISOR:
+	        case AREA_STATE_OBSERVER: return 40;
+	        case ADMIN_SUPERVISOR: case SURVEILLANCE_SUPERVISOR: case STATE_OBSERVER:
+	        case CASE_SUPERVISOR:  case CONTACT_SUPERVISOR: case EVENT_OFFICER:
+	        case POE_SUPERVISOR: return 30;
+	        case SURVEILLANCE_OFFICER: case DISTRICT_OBSERVER:
+	        case CASE_OFFICER: case CONTACT_OFFICER: return 20;
+	        case COMMUNITY_OFFICER: return 10;
+	        default: return 0;
+	    }
+	}
+
+	/** Same hierarchy rules as UserForm.getHierarchicalManageableRoles. */
+	private Set<UserRole> computeAssignableRoles(Set<UserRole> loggedInRoles) {
+	    Set<UserRole> enabled = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
+	    enabled.remove(UserRole.BAG_USER);
+
+	    if (loggedInRoles == null || loggedInRoles.isEmpty()) return enabled;
+	    if (loggedInRoles.contains(UserRole.ADMIN))           return enabled;
+
+	    final int userRank = maxRank(loggedInRoles);
+	    enabled.removeIf(role ->
+	        role == UserRole.ADMIN
+	        || role == UserRole.PUBLISH_USER
+	        || role == UserRole.EDITOR_USER
+	        || getRoleRank(role) >= userRank);
+
+	    return enabled;
+	}
+	
+	/**
+	 * Returns null when the row is allowed, otherwise a specific human-readable
+	 * error message (written into the error-report CSV by writeImportError).
+	 * Mirrors UserForm.getHierarchicalManageableRoles + applyGeographicScope.
+	 */
+	private String validateAgainstHierarchyAndScope(
+	        Set<UserRole> requestedRoles,
+	        AreaReferenceDto area,
+	        RegionReferenceDto province,
+	        DistrictReferenceDto district,
+	        Set<CommunityReferenceDto> communities) {
+
+	    /* --- 1. ROLE HIERARCHY --- */
+	    if (requestedRoles == null || requestedRoles.isEmpty()) {
+	        return "At least one user role must be assigned.";
+	    }
+	    for (UserRole role : requestedRoles) {
+	        if (!editorAssignableRoles.contains(role)) {
+	            return "Role '" + role + "' cannot be assigned by your account "
+	                 + "(must be strictly below your own jurisdiction level).";
+	        }
+	    }
+
+	    /* --- 2. GEOGRAPHIC SCOPE --- */
+	    if (editorJurisdiction == null) return null;          // editor has no scope → no restriction
+
+	    switch (editorJurisdiction) {
+	        case NATION:
+	            return null;                                  // unrestricted
+
+	        case AREA:
+	            if (editorArea == null) return null;
+	            if (area == null)
+	                return "Region is required because your scope is Region '"
+	                     + editorArea.getCaption() + "'.";
+	            if (!editorArea.getUuid().equals(area.getUuid()))
+	                return "Row Region '" + area.getCaption()
+	                     + "' is outside your Region '" + editorArea.getCaption() + "'.";
+	            return null;
+
+	        case REGION:
+	            if (editorRegion == null) return null;
+	            if (area == null || !editorArea.getUuid().equals(area.getUuid()))
+	                return "Row Region must match your Region '" + editorArea.getCaption() + "'.";
+	            if (province == null)
+	                return "Province is required because your scope is Province '"
+	                     + editorRegion.getCaption() + "'.";
+	            if (!editorRegion.getUuid().equals(province.getUuid()))
+	                return "Row Province '" + province.getCaption()
+	                     + "' is outside your Province '" + editorRegion.getCaption() + "'.";
+	            return null;
+
+	        case DISTRICT:
+	            if (editorRegion == null) return null;
+	            if (area == null || !editorArea.getUuid().equals(area.getUuid()))
+	                return "Row Region must match your Region '" + editorArea.getCaption() + "'.";
+	            if (province == null || !editorRegion.getUuid().equals(province.getUuid()))
+	                return "Row Province must match your Province '"
+	                     + editorRegion.getCaption() + "'.";
+	            if (district == null)
+	                return "District is required because your scope is district-level.";
+	            boolean okSingle = editorDistrict != null
+	                    && editorDistrict.getUuid().equals(district.getUuid());
+	            boolean okMulti  = editorDistricts != null
+	                    && editorDistricts.stream()
+	                        .anyMatch(d -> d.getUuid().equals(district.getUuid()));
+	            if (!okSingle && !okMulti)
+	                return "Row District '" + district.getCaption()
+	                     + "' is outside your district scope.";
+	            return null;
+
+	        case COMMUNITY:
+	            if (editorCommunities == null || editorCommunities.isEmpty()) return null;
+	            if (communities == null || communities.isEmpty())
+	                return "At least one Cluster must be specified at your scope.";
+	            Set<String> allowed = editorCommunities.stream()
+	                    .map(CommunityReferenceDto::getUuid)
+	                    .collect(Collectors.toSet());
+	            for (CommunityReferenceDto c : communities) {
+	                if (c.getUuid() == null || !allowed.contains(c.getUuid()))
+	                    return "Cluster '" + (c.getCaption() != null ? c.getCaption() : c.getUuid())
+	                         + "' is outside your cluster scope.";
+	            }
+	            return null;
+
+	        default:
+	            return null;
+	    }
+	}
+	
+	
 }

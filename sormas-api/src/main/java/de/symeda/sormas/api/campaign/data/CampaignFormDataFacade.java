@@ -150,6 +150,8 @@ public interface CampaignFormDataFacade {
 	void verifyCampaignData(List<String> uuids, boolean isUnVerifying);
 
 	void publishCampaignData(List<String> uuids, boolean isUnPublishing);
+	
+	void validateCampaignData(List<String> uuids, boolean isUnValidate);
 
 	List<CampaignFormDataIndexDto> getByCompletionAnalysisNew(CampaignFormDataCriteria criteria,
 			List<SortProperty> sortProperties, FormAccess frms);
@@ -181,6 +183,8 @@ public interface CampaignFormDataFacade {
 	boolean getVerifiedStatus(String uuid);
 
 	boolean getPublishedStatus(String uuid);
+	
+	boolean getValidatedStatus(String uuid);
 
 	Integer getAllActiveDataTotalRowCount();
 	
@@ -192,16 +196,9 @@ public interface CampaignFormDataFacade {
 	
 	long getRecordCountByGroupUuid(String groupUuid);
 	
-//	List<CampaignFormDataHistoryExtractDto> getAllActiveAfter(Date date, String uuid);
-
 	List<CampaignFormDataHistoryExtractDto> getAllActiveAfter(Date date, List<String> uuid);
 
 	List<CampaignFormDataHistoryExtractDto> getFormDataHistory(List<String> uuid, int offset, int limit);
 	
 	public long getFormDataHistoryCount(List<String> uuid);
-
-
-
-	
-	
 }

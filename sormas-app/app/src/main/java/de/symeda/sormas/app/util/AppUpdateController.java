@@ -123,6 +123,7 @@ public class AppUpdateController {
 
 		// retrieve the app version but returns the same value
 		if (appUrl == null || appUrl.isEmpty() || version == null) {
+			System.out.println(appUrl + "appurl " + version + "version");
 			throw new IllegalArgumentException("This method may not be called with appUrl or version set to null or an empty appUrl.");
 		}
 
@@ -378,6 +379,10 @@ public class AppUpdateController {
 			System.out.println(fileUri + "URIIIIIIIIIIIIIIIIIIIII" + fileName);
 		}
 		installIntent.setDataAndType(fileUri, "application/vnd.android.package-archive");
+		// Mark the update as pending so AppUpdateRelaunchReceiver reopens the app once the
+		// package has been replaced. The app process is killed during installation, so
+		// onActivityResult cannot be relied upon for a successful install.
+		ConfigProvider.setAppUpdatePending(true);
 		activity.startActivityForResult(installIntent, AppUpdateController.INSTALL_RESULT);
 	}
 

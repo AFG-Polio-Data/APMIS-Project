@@ -3,6 +3,7 @@ package de.symeda.sormas.app.component.controls;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.databinding.BindingAdapter;
@@ -42,10 +44,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import de.symeda.sormas.api.campaign.data.CampaignFormImageNamingContext;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageSource;
+import de.symeda.sormas.api.campaign.data.CampaignFormImageValidationDto;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageValue;
 import de.symeda.sormas.api.campaign.form.CampaignFormElement;
 import de.symeda.sormas.api.document.DocumentRelatedEntityType;
@@ -57,6 +61,7 @@ import de.symeda.sormas.app.backend.config.ConfigProvider;
 import de.symeda.sormas.app.backend.document.Document;
 import de.symeda.sormas.app.component.VisualState;
 import de.symeda.sormas.app.component.VisualStateControlType;
+import de.symeda.sormas.app.util.MobileYoloImageValidator;
 
 public class ControlImageEditField extends ControlPropertyEditField<Object> {
 
@@ -297,87 +302,146 @@ public class ControlImageEditField extends ControlPropertyEditField<Object> {
             clearPending();
             return;
         }
-        CampaignFormImageValue value = new CampaignFormImageValue();
-        value.setLocalId(pendingLocalId);
-        value.setOriginalFileName(pendingOutputFile.getName());
-        value.setGeneratedFileName(pendingOutputFile.getName());
-        value.setMimeType("image/jpeg");
-        value.setSource(CampaignFormImageSource.MOBILE_CAMERA);
-        value.setCapturedAt(System.currentTimeMillis());
-        value.setDeviceType(Build.MODEL);
-        value.setOsVersion(Build.VERSION.RELEASE);
-        value.setOriginalSizeBytes(pendingOutputFile.length());
-        value.setCompressedSizeBytes(pendingOutputFile.length());
 
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(pendingOutputFile.getAbsolutePath(), options);
-        if (options.outWidth > 0) value.setWidth(options.outWidth);
-        if (options.outHeight > 0) value.setHeight(options.outHeight);
+        final File capturedFile = pendingOutputFile;
+        final String localId = pendingLocalId;
+        final int replaceIndex = pendingReplaceIndex;
+        final Context context = getContext();
 
-        // Persist the captured bytes into the local documents table (mirrors the web flow:
-        // CampaignFormImageFacade.uploadImage -> document table). The temp file is then removed.
-        try {
-            long originalSize = pendingOutputFile.length();
-            byte[] bytes = readFileBytes(pendingOutputFile);
+        final ProgressDialog progressDialog = ProgressDialog.show(context, "", "Validating image quality...", true, false);
 
-            // Resize/compress to under 200KB before storing.
-            bytes = compressImage(bytes, 200L * 1024L);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                long originalSize = capturedFile.length();
+                byte[] rawBytes = readFileBytes(capturedFile);
 
-            // Blur detection: reject poor quality images and prompt the user to retake.
-            if (isBlurry(bytes)) {
-                Toast.makeText(getContext(), "Image appears blurry. Please retake.", Toast.LENGTH_LONG).show();
-                clearPending();
-                return;
+                // Resize/compress to under 200KB before storing.
+                final byte[] bytes = compressImage(rawBytes, 200L * 1024L);
+
+                // Blur detection
+                final boolean blurry = isBlurry(bytes);
+
+                // YOLO AI validation for human face/person/selfie or animals
+                final CampaignFormImageValidationDto validationDto;
+                if (!blurry) {
+                    validationDto = MobileYoloImageValidator.getInstance().validate(context, bytes);
+                } else {
+                    validationDto = null;
+                }
+
+                post(() -> {
+                    if (progressDialog != null && progressDialog.isShowing()) {
+                        try {
+                            progressDialog.dismiss();
+                        } catch (Exception ignored) {
+                        }
+                    }
+
+                    if (blurry) {
+                        Toast.makeText(getContext(), "Image appears blurry. Please retake.", Toast.LENGTH_LONG).show();
+                        if (capturedFile != null) {
+                            capturedFile.delete();
+                        }
+                        clearPending();
+                        return;
+                    }
+
+                    if (validationDto != null && !validationDto.isValid()) {
+                        new AlertDialog.Builder(getContext())
+                                .setTitle("Image Rejected")
+                                .setMessage(validationDto.getMessage())
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show();
+                        if (capturedFile != null) {
+                            capturedFile.delete();
+                        }
+                        clearPending();
+                        return;
+                    }
+
+                    try {
+                        CampaignFormImageValue value = new CampaignFormImageValue();
+                        value.setLocalId(localId);
+                        value.setOriginalFileName(capturedFile.getName());
+                        value.setGeneratedFileName(capturedFile.getName());
+                        value.setMimeType("image/jpeg");
+                        value.setSource(CampaignFormImageSource.MOBILE_CAMERA);
+                        value.setCapturedAt(System.currentTimeMillis());
+                        value.setDeviceType(Build.MODEL);
+                        value.setOsVersion(Build.VERSION.RELEASE);
+                        value.setOriginalSizeBytes(originalSize);
+                        value.setCompressedSizeBytes((long) bytes.length);
+
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inJustDecodeBounds = true;
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                        if (options.outWidth > 0) value.setWidth(options.outWidth);
+                        if (options.outHeight > 0) value.setHeight(options.outHeight);
+
+                        // Persist the captured bytes into the local documents table (mirrors the web flow:
+                        // CampaignFormImageFacade.uploadImage -> document table). The temp file is then removed.
+                        String generatedName = generateImageFileName(namingContextForRecord()) + ".jpg";
+
+                        Document document = DatabaseHelper.getDocumentDao().build();
+                        document.setRelatedEntityUuid(campaignFormDataUuid);
+                        document.setRelatedEntityType(DocumentRelatedEntityType.CAMPAIGN_FORM_DATA.name());
+                        document.setName(generatedName);
+                        document.setMimeType("image/jpeg");
+                        document.setSize(bytes.length);
+                        document.setContent(bytes);
+                        document.setUploadingUser(ConfigProvider.getUser());
+                        DatabaseHelper.getDocumentDao().saveAndSnapshot(document);
+
+                        value.setOriginalSizeBytes(originalSize);
+                        value.setCompressedSizeBytes((long) bytes.length);
+                        value.setOriginalFileName(capturedFile.getName());
+                        value.setGeneratedFileName(generatedName);
+                        value.setImageId(document.getUuid());
+                        value.setLocalId(document.getUuid());
+
+                        if (imageValues == null) imageValues = new ArrayList<>();
+
+                        if (!isMultipleAllowed() || replaceIndex >= 0) {
+                            if (replaceIndex >= 0 && replaceIndex < imageValues.size()) {
+                                imageValues.set(replaceIndex, value);   // replace the retaken image
+                            } else {
+                                imageValues.clear();
+                                imageValues.add(value);                // single-image: replace the only image
+                            }
+                        } else {
+                            imageValues.add(value);                    // multi-image: append
+                        }
+
+                        refreshPreview();
+                        onValueChanged();          // <-- fires the fragment's value listener
+                    } catch (Exception e) {
+                        Log.e("ControlImageEditField", "Failed to persist captured image", e);
+                        Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+                    } finally {
+                        if (capturedFile != null) {
+                            capturedFile.delete();
+                        }
+                        pendingReplaceIndex = -1;
+                        clearPending();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e("ControlImageEditField", "Failed to process captured image", e);
+                post(() -> {
+                    if (progressDialog != null && progressDialog.isShowing()) {
+                        try {
+                            progressDialog.dismiss();
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+                    if (capturedFile != null) {
+                        capturedFile.delete();
+                    }
+                    clearPending();
+                });
             }
-
-            // Generate the file name from the geographic context (NA for missing values).
-            String generatedName = generateImageFileName(namingContextForRecord()) + ".jpg";
-
-            Document document = DatabaseHelper.getDocumentDao().build();
-            document.setRelatedEntityUuid(campaignFormDataUuid);
-            document.setRelatedEntityType(DocumentRelatedEntityType.CAMPAIGN_FORM_DATA.name());
-            document.setName(generatedName);
-            document.setMimeType("image/jpeg");
-            document.setSize(bytes.length);
-            document.setContent(bytes);
-            document.setUploadingUser(ConfigProvider.getUser());
-            DatabaseHelper.getDocumentDao().saveAndSnapshot(document);
-
-            value.setOriginalSizeBytes(originalSize);
-            value.setCompressedSizeBytes((long) bytes.length);
-            value.setOriginalFileName(pendingOutputFile.getName());
-            value.setGeneratedFileName(generatedName);
-            value.setImageId(document.getUuid());
-            value.setLocalId(document.getUuid());
-        } catch (Exception e) {
-            Log.e("ControlImageEditField", "Failed to persist captured image", e);
-            Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
-            clearPending();
-            return;
-        } finally {
-            if (pendingOutputFile != null) {
-                pendingOutputFile.delete();
-            }
-        }
-
-        if (imageValues == null) imageValues = new ArrayList<>();
-
-        if (!isMultipleAllowed() || pendingReplaceIndex >= 0) {
-            if (pendingReplaceIndex >= 0 && pendingReplaceIndex < imageValues.size()) {
-                imageValues.set(pendingReplaceIndex, value);   // replace the retaken image
-            } else {
-                imageValues.clear();
-                imageValues.add(value);                        // single-image: replace the only image
-            }
-        } else {
-            imageValues.add(value);                            // multi-image: append
-        }
-        pendingReplaceIndex = -1;
-
-        refreshPreview();
-        onValueChanged();          // <-- fires the fragment's value listener
-        clearPending();
+        });
     }
 
     private void refreshPreview() {

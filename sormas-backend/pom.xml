@@ -6,7 +6,7 @@
 		<artifactId>sormas-base</artifactId>
 		<groupId>de.symeda.sormas</groupId>
  
-		<version>1.0.44</version>
+		<version>1.0.45</version>
  		<relativePath>../sormas-base</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
@@ -96,6 +96,12 @@
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.microsoft.onnxruntime</groupId>
+			<artifactId>onnxruntime</artifactId>
+			<version>1.17.1</version>
 		</dependency>
 
 		<!-- Testing -->

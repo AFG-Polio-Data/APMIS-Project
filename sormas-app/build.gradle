@@ -27,6 +27,7 @@ buildscript {
 allprojects {
     repositories {
         google()
+        mavenCentral()
         jcenter()
         mavenLocal()
         flatDir {

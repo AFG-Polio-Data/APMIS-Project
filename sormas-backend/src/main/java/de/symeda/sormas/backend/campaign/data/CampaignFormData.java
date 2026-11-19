@@ -68,7 +68,9 @@ public class CampaignFormData extends AbstractDomainObject{
 	public static final String CREATED_BY = "creatingUser";
 	public static final String ISVERIFIED = "isverified";
 	public static final String ISPUBLISHED = "ispublished";
+	public static final String ISVALIDATED = "validated";
 	public static final String RECORDVERSION = "recordversion";
+
 	
 
 	private static final long serialVersionUID = -8021065433714419288L;
@@ -88,6 +90,7 @@ public class CampaignFormData extends AbstractDomainObject{
 	public Double lon;
 	private boolean isverified;
 	private boolean ispublished;
+	private boolean isvalidated;
 	private User  creatinguser_id;
 	
 	private Long recordversion;
@@ -197,13 +200,6 @@ public class CampaignFormData extends AbstractDomainObject{
 		this.isverified = isverified;
 	}
 
-	/*public CampaignFormMeta getFormType() {
-		return formType;
-	}
-
-	public void setFormType(CampaignFormMeta formType) {
-		this.formType = formType;
-	}*/
 	@Column
 	public String getSource() {
 		return source;
@@ -250,10 +246,12 @@ public class CampaignFormData extends AbstractDomainObject{
 		this.ispublished = ispublished;
 	}
 
+	@Column(name = "isvalidated")
+	public boolean isValidated() {
+		return isvalidated;
+	}
 
-
-//	
-	
-	
-	
+	public void setValidated(boolean isvalidated) {
+		this.isvalidated = isvalidated;
+	}
 }

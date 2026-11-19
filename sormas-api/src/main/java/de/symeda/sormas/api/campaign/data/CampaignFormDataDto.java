@@ -78,6 +78,8 @@ public class CampaignFormDataDto extends EntityDto {
 	private boolean archived;
 	private boolean ispublished;
 	private boolean isverified;
+	private boolean isvalidated;
+
 //	private String recordgroupuuid;
 	private Long recordversion;
 	//private Double latitude;
@@ -255,6 +257,14 @@ public class CampaignFormDataDto extends EntityDto {
 
 	public void setIsverified(boolean isverified) {
 		this.isverified = isverified;
+	}
+	
+	public boolean isIsvalidated() {
+		return isvalidated;
+	}
+
+	public void setIsvalidated(boolean isvalidated) {
+		this.isvalidated = isvalidated;
 	}
 
 //	public String getRecordgroupuuid() {

@@ -23,6 +23,8 @@ public class CampaignFormDataListViewModel extends ViewModel {
     private MutableLiveData<Integer> rowCount = new MutableLiveData<>();
 
 
+
+
     public CampaignFormDataListViewModel() {
         campaignFormDataFactory = new CampaignFormDataFactory();
         CampaignFormDataCriteria campaignFormDataCriteria = new CampaignFormDataCriteria();
@@ -82,18 +84,6 @@ public class CampaignFormDataListViewModel extends ViewModel {
             this.campaignFormDataCriteria = campaignFormDataCriteria;
         }
 
-//        @Override
-//        public void loadInitial(@NonNull LoadInitialParams params, @NonNull LoadInitialCallback<CampaignFormData> callback) {
-//            long totalCount = DatabaseHelper.getCampaignFormDataDao().countByCriteria(campaignFormDataCriteria);
-//            int offset = params.requestedStartPosition;
-//            int count = params.requestedLoadSize;
-//            if (offset + count > totalCount) {
-//                offset = (int) Math.max(0, totalCount - count);
-//            }
-//            List<CampaignFormData> formDataList = DatabaseHelper.getCampaignFormDataDao().queryByCriteria(campaignFormDataCriteria, offset, count);
-//            callback.onResult(formDataList, offset, (int) totalCount);
-//        }
-//
 
         @Override
         public void loadInitial(@NonNull LoadInitialParams params,
@@ -142,13 +132,6 @@ public class CampaignFormDataListViewModel extends ViewModel {
 
                 return new CampaignFormDataDataSource(campaignFormDataCriteria);
             }
-//        @NonNull
-//        @Override
-//        public DataSource create() {
-//            campaignFormDataDataSource = new CampaignFormDataDataSource(campaignFormDataCriteria);
-//            mutableDataSource.postValue(campaignFormDataDataSource);
-//            return campaignFormDataDataSource;
-//        }
 
         public CampaignFormDataCriteria getCampaignFormDataCriteria() {
             return campaignFormDataCriteria;

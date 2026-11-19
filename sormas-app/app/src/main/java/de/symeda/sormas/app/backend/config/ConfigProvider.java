@@ -84,6 +84,9 @@ public final class ConfigProvider {
 	private static String SERVER_COUNTRY_NAME = "countryname";
 	private static String INITIAL_SYNC_REQUIRED = "initialSyncRequired";
 
+	private static final String APP_UPDATE_PENDING = "appUpdatePending";
+
+
 	private static String LBDS_SORMAS_PRIVATE_KEY_AES_SECRET = "lbdsSormasPrivateKeyAesSecret";
 	private static String LBDS_SORMAS_PRIVATE_KEY = "lbdsSormasPrivateKey";
 	private static String LBDS_SORMAS_PUBLIC_KEY = "lbdsSormasPublicKey";
@@ -95,8 +98,8 @@ public final class ConfigProvider {
 	private static String LBDS_KEYSTORE_ALIAS_AES_SECRET = "LBDS_AES_SECRET";
 
  
-	public static String APPVERSIONNUMBER = "1.0.44";
-	public static String APPRELEASEDATE = "11 OCTOBER, 2026";
+	public static String APPVERSIONNUMBER = "1.0.45";
+	public static String APPRELEASEDATE = "28 OCTOBER, 2026";
 
 
 	private static final String FULL_COUNTRY_LOCALE_PATTERN = "[a-zA-Z]*-[a-zA-Z]*";
@@ -123,6 +126,7 @@ public final class ConfigProvider {
 	private Date lastDeletedSyncDate;
 	private Long currentAppDownloadId;
 	private Boolean accessGranted;
+	private Boolean appUpdatePending;
 	private String serverLocale;
 	private String serverCountryName;
 	private Boolean repullNeeded;
@@ -657,6 +661,31 @@ public final class ConfigProvider {
 	}
 
 	/**
+	 * True while the app is installing a downloaded update. Used by the update relaunch
+	 * receiver to only reopen the app for self-updates and not for unrelated package replacements.
+	 */
+	public static boolean isAppUpdatePending() {
+		if (instance.appUpdatePending == null) {
+			synchronized (ConfigProvider.class) {
+				if (instance.appUpdatePending == null) {
+					Config config = DatabaseHelper.getConfigDao().queryForId(APP_UPDATE_PENDING);
+					instance.appUpdatePending = config != null && Boolean.parseBoolean(config.getValue());
+				}
+			}
+		}
+		return instance.appUpdatePending;
+	}
+
+	public static void setAppUpdatePending(boolean appUpdatePending) {
+		if (instance.appUpdatePending != null && instance.appUpdatePending == appUpdatePending) {
+			return;
+		}
+
+		instance.appUpdatePending = appUpdatePending;
+		saveConfigEntry(APP_UPDATE_PENDING, String.valueOf(appUpdatePending));
+	}
+
+	/**
 	 * When no locale is set Locale.getDefault is set.
 	 * (Actually not relevant, because the locale is always updated to the server's, so this is just a fallback).
 	 * 
@@ -936,4 +965,6 @@ public final class ConfigProvider {
 		instance.serverLbdsDebugUrl = serverRestUrl;
 		saveConfigEntry(LBDS_DEBUG_URL, serverRestUrl);
 	}
+
+
 }

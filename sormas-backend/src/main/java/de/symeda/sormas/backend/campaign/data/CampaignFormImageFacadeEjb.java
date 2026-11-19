@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import de.symeda.sormas.api.campaign.data.CampaignFormImageFacade;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageNamingContext;
+import de.symeda.sormas.api.campaign.data.CampaignFormImageValidationDto;
 import de.symeda.sormas.api.campaign.data.CampaignFormImageValue;
 import de.symeda.sormas.api.document.DocumentDto;
 import de.symeda.sormas.api.document.DocumentRelatedEntityType;
@@ -32,6 +33,9 @@ public class CampaignFormImageFacadeEjb implements CampaignFormImageFacade {
 
 	@EJB
 	private UserService userService;
+
+	@EJB
+	private YoloImageValidationService yoloValidationService;
 
 	@Override
 	public String generateImageFileName(CampaignFormImageNamingContext namingContext) {
@@ -96,6 +100,11 @@ public class CampaignFormImageFacadeEjb implements CampaignFormImageFacade {
 		}
 		if (imageContent == null || imageContent.length == 0) {
 			throw new ValidationRuntimeException("Image content must not be empty.");
+		}
+
+		CampaignFormImageValidationDto validation = validateImageContent(imageContent);
+		if (!validation.isValid()) {
+			throw new ValidationRuntimeException(validation.getMessage());
 		}
 
 		CampaignFormImageValue metadata = imageValue == null ? new CampaignFormImageValue() : imageValue;
@@ -278,5 +287,13 @@ public class CampaignFormImageFacadeEjb implements CampaignFormImageFacade {
 		}
 
 		return generateImageFileName(null) + "." + detectExtension(imageValue);
+	}
+
+	@Override
+	public CampaignFormImageValidationDto validateImageContent(byte[] imageContent) {
+		if (yoloValidationService != null) {
+			return yoloValidationService.validate(imageContent);
+		}
+		return CampaignFormImageValidationDto.valid();
 	}
 }

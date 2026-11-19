@@ -77,6 +77,7 @@ android {
 repositories {
     mavenLocal()
     google()
+    mavenCentral()
     maven { url "https://maven.repository.redhat.com/ga/" }
     jcenter()
 }
@@ -145,6 +146,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:23.4.0'
     implementation platform('com.google.firebase:firebase-bom:32.7.1')
     implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.17.1'
 
 }
 

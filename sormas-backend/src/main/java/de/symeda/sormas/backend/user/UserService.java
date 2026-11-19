@@ -584,11 +584,13 @@ public class UserService extends AdoServiceWithUserFilter<User> {
 		}
 		
 		if (userCriteria.getUserRole() != null) {
+			System.out.println("getUserRolegetUserRolegetUserRolegetUserRole " + userCriteria.getUserRole());
 			Join<User, UserRole> joinRoles = from.join(User.USER_ROLES, JoinType.LEFT);
 			filter = CriteriaBuilderHelper.and(cb, filter, joinRoles.in(Arrays.asList(userCriteria.getUserRole())));
 		}
 
-		if (userCriteria.getUserRoleSet() != null && !userCriteria.getUserRoleSet().isEmpty()) {						
+		if (userCriteria.getUserRoleSet() != null && !userCriteria.getUserRoleSet().isEmpty()) {	
+			System.out.println("getUserRoleSetgetUserRoleSetgetUserRoleSet " + userCriteria.getUserRoleSet());
 			Join<User, UserRole> joinRoles = from.join(User.USER_ROLES, JoinType.LEFT);
 			filter = CriteriaBuilderHelper.and(cb, filter, joinRoles.in(Arrays.asList(userCriteria.getUserRoleSet())));
 		}
@@ -634,25 +636,25 @@ public class UserService extends AdoServiceWithUserFilter<User> {
 			filter = CriteriaBuilderHelper.and(cb, filter, cb.notEqual(from.get(User.USER_TYPE), UserType.EOC_USER));
 		}
 
-		if (this.getCurrentUser().hasAnyUserRole(UserRole.COMMUNITY_INFORMANT)) {
-			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
-			filter = CriteriaBuilderHelper.and(cb, filter,
-					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
-		}
-		if (this.getCurrentUser().hasAnyUserRole(UserRole.AREA_ADMIN_SUPERVISOR)) {
-			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
-			filter = CriteriaBuilderHelper.and(cb, filter,
-					cb.equal(from.get(User.AREA), this.getCurrentUser().getArea()));
-			filter = CriteriaBuilderHelper.and(cb, filter,
-					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
-		}
-		if (this.getCurrentUser().hasAnyUserRole(UserRole.ADMIN_SUPERVISOR)) {
-			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
-			filter = CriteriaBuilderHelper.and(cb, filter,
-					cb.equal(from.get(User.REGION), this.getCurrentUser().getRegion()));
-			filter = CriteriaBuilderHelper.and(cb, filter,
-					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
-		}
+//		if (this.getCurrentUser().hasAnyUserRole(UserRole.COMMUNITY_INFORMANT)) {
+//			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
+//			filter = CriteriaBuilderHelper.and(cb, filter,
+//					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
+//		}
+//		if (this.getCurrentUser().hasAnyUserRole(UserRole.AREA_ADMIN_SUPERVISOR)) {
+//			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
+//			filter = CriteriaBuilderHelper.and(cb, filter,
+//					cb.equal(from.get(User.AREA), this.getCurrentUser().getArea()));
+//			filter = CriteriaBuilderHelper.and(cb, filter,
+//					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
+//		}
+//		if (this.getCurrentUser().hasAnyUserRole(UserRole.ADMIN_SUPERVISOR)) {
+//			filter = CriteriaBuilderHelper.and(cb, filter, cb.isMember(UserRole.REST_USER, from.get(User.USER_ROLES)));
+//			filter = CriteriaBuilderHelper.and(cb, filter,
+//					cb.equal(from.get(User.REGION), this.getCurrentUser().getRegion()));
+//			filter = CriteriaBuilderHelper.and(cb, filter,
+//					cb.isMember(UserRole.COMMUNITY_OFFICER, from.get(User.USER_ROLES)));
+//		}
 
 		return filter;
 	}

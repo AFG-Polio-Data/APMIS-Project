@@ -360,7 +360,6 @@ public class PopulationDataFacadeEjb implements PopulationDataFacade {
 	public List<PopulationDataDto> getAllPopulationDataByLimit(Integer fetchFromIndex, Integer fetchSize) {
 		
 	    List<PopulationDataDto> resultData = new ArrayList<>();
-
 	    
 		if (fetchSize > 5000 || fetchSize < 0 || fetchFromIndex < 0) {
 			return resultData;
@@ -370,6 +369,13 @@ public class PopulationDataFacadeEjb implements PopulationDataFacade {
 	    CriteriaQuery<PopulationData> cq = cb.createQuery(PopulationData.class);
 	    Root<PopulationData> root = cq.from(PopulationData.class);
 	    cq.select(root);
+	    
+	    cq.orderBy(cb.asc(root.get(PopulationData.CAMPAIGN)), 
+	    		cb.asc(root.get(PopulationData.REGION)), 
+	    		cb.asc(root.get(PopulationData.DISTRICT)),
+	    		cb.asc(root.get(PopulationData.CREATION_DATE))
+	    		);
+
 	    TypedQuery<PopulationData> query = em.createQuery(cq);
 	    
 	    // Pagination

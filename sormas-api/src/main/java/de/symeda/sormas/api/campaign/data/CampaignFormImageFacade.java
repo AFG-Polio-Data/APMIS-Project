@@ -27,4 +27,6 @@ public interface CampaignFormImageFacade {
 	
 	String resolvePreviewUrl(String imageId);
 
+	CampaignFormImageValidationDto validateImageContent(byte[] imageContent);
+
 }

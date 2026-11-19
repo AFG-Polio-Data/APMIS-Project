@@ -129,14 +129,18 @@ public class SettingsActivity extends BaseLandingActivity {
 		super.onActivityResult(requestCode, resultCode, intent);
 		if (requestCode == AppUpdateController.INSTALL_RESULT) {
 			switch (resultCode) {
-			// Do nothing if the installation was successful
+			// Installation succeeded; AppUpdateRelaunchReceiver reopens the app once the package has been replaced
 			case Activity.RESULT_OK:
+				finishAndRemoveTask();
+				break;
 			case Activity.RESULT_CANCELED:
 			case Activity.RESULT_FIRST_USER:
+				ConfigProvider.setAppUpdatePending(false);
 				finishAndRemoveTask();
 				break;
 			// Everything else probably is an error
 			default:
+				ConfigProvider.setAppUpdatePending(false);
 				AppUpdateController.getInstance().handleInstallFailure();
 				break;
 			}

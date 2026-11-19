@@ -68,6 +68,9 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 	Button unVerifyButton;
 	Button publishButton;
 	Button unPublishButton;
+	Button unValidateButton;
+	Button validateButton;
+
 	boolean dataPublishNotificationCheck = false;
 
 	private final UserProvider usr = new UserProvider();
@@ -286,11 +289,16 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 
 		verifyButton = new Button(I18nProperties.getCaption("Verify Data"));
 		publishButton = new Button(I18nProperties.getCaption(" Publish Data"));
+		validateButton = new Button(I18nProperties.getCaption(" Validate Data"));
+
 		Icon verifyButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
 		verifyButton.setIcon(verifyButtonIcon);
 
 		Icon publishButtonIcon = new Icon(VaadinIcon.PRINT);
 		publishButton.setIcon(publishButtonIcon);
+		
+		Icon validateButtonnIcon = new Icon(VaadinIcon.PRINT);
+		validateButton.setIcon(validateButtonnIcon);
 
 		unVerifyButton = new Button(I18nProperties.getCaption("Un-Verify Data"));
 		Icon unVerifyButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
@@ -299,6 +307,10 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 		unPublishButton = new Button(I18nProperties.getCaption("Un-Publish Data"));
 		Icon unPublishButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
 		unPublishButton.setIcon(unPublishButtonIcon);
+		
+		unValidateButton = new Button(I18nProperties.getCaption("Un-Validate Data"));
+		Icon unValidateButtonIcon = new Icon(VaadinIcon.CHECK_SQUARE_O);
+		unValidateButton.setIcon(unValidateButtonIcon);
 
 		if (usr.getUser().getUsertype() == UserType.WHO_USER) {
 
@@ -321,11 +333,31 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 							}
 
 						}
+
+						
 					} else {
 
 					}
 
 				}
+			} 
+			
+			
+			if(openData) {
+			if (usr.getUser().getUserRoles().contains(UserRole.PUBLISH_USER) 
+					|| usr.getUser().getUserRoles().contains(UserRole.EDITOR_USER) ) {
+				
+				System.out.println(campaignFormMetaReferenceDto.getFormType() + "campaignFormMetaReferenceDto.getFormType()");
+				if (campaignFormMetaReferenceDto.getFormType().equalsIgnoreCase("intra-campaign")) {
+				if(!FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(uuidForm)) {
+					dialog.getFooter().add(validateButton);
+				}else {
+					dialog.getFooter().add(unValidateButton);
+				}
+				}
+				
+			}
+			
 			}
 
 		}
@@ -361,6 +393,33 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				grid.getDataProvider().refreshAll();
 			}
 		});
+		
+		validateButton.addClickListener(e -> {
+			try {
+				List<String> uuidList = new ArrayList<>();
+				uuidList.add(uuidForm);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, true);
+				
+				for (String eachUuid : uuidList) {
+					if (FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(eachUuid)) {
+						UserActivitySummaryDto userActivitySummaryDto = new UserActivitySummaryDto();
+						userActivitySummaryDto.setActionModule("Campaign Data");
+						userActivitySummaryDto.setAction("Validate Data: " + campaignFormMetaDto.getFormName()
+								+ " in " + campaignReferenceDto.getCaption());
+						userActivitySummaryDto.setCreatingUser_string(usr.getUser().getUserName());
+						FacadeProvider.getUserFacade().saveUserActivitySummary(userActivitySummaryDto);
+					}
+				}
+
+			} catch (Exception exception) {
+				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Validate CampaignData ");
+			} finally {
+
+				Notification.show("Data validated successfully");
+				validateButton.setVisible(false);
+				grid.getDataProvider().refreshAll();
+			}
+		});
 
 		unVerifyButton.addClickListener(e -> {
 			try {
@@ -381,7 +440,7 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 				Notification.show("Data un-verified successfully");
 				unVerifyButton.setVisible(false);
 				grid.getDataProvider().refreshAll();
-//					dialog.getFooter().add(verifyButton);
+//					dialog.getFooter().add(verifyButton)
 
 			}
 		});
@@ -403,6 +462,37 @@ public class CampaignFormDataEditForm extends HorizontalLayout {
 
 			}
 		});
+		
+		unValidateButton.addClickListener(e -> {
+			try {
+				List<String> uuidList = new ArrayList<>();
+				uuidList.add(uuidForm);
+				FacadeProvider.getCampaignFormDataFacade().validateCampaignData(uuidList, false);
+				
+				for (String eachUuid : uuidList) {
+					if (!FacadeProvider.getCampaignFormDataFacade().getValidatedStatus(eachUuid)) {
+						UserActivitySummaryDto userActivitySummaryDto = new UserActivitySummaryDto();
+						userActivitySummaryDto.setActionModule("Campaign Data");
+						userActivitySummaryDto.setAction("Un-Validate Data: " + campaignFormMetaDto.getFormName()
+								+ " in " + campaignReferenceDto.getCaption());
+						userActivitySummaryDto.setCreatingUser_string(usr.getUser().getUserName());
+						FacadeProvider.getUserFacade().saveUserActivitySummary(userActivitySummaryDto);
+					}
+				}
+				
+
+			} catch (Exception exception) {
+				logger.debug(" ============xxxxxxxxxxxxx============== " + "Could Not Un-Publish CampaignData ");
+			} finally {
+
+				Notification.show("Data un-validated successfully");
+				unValidateButton.setVisible(false);
+				grid.getDataProvider().refreshAll();
+//					dialog.getFooter().add(verifyButton);
+
+			}
+		});
+		
 
 		saveAndContinueButton.addClickListener(e -> {
 			boolean isFormValueSaved = campaignFormBuilder.saveFormValues();

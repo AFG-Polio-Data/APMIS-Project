@@ -3,7 +3,7 @@
 		<groupId>de.symeda.sormas</groupId>
 		<artifactId>sormas-base</artifactId>
  
-		<version>1.0.44</version>
+		<version>1.0.45</version>
  		<relativePath>../sormas-base</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>

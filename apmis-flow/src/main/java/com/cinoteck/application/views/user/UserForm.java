@@ -46,7 +46,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
@@ -86,11 +85,7 @@ import de.symeda.sormas.api.user.UserType;
 import de.symeda.sormas.api.user.UserRole.UserRoleValidationException;
 
 @Route(value = "/edit-user")
-
 public class UserForm extends FormLayout {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6918900346481904170L;
 
 	private boolean isDistrictMulti = false;
@@ -102,8 +97,6 @@ public class UserForm extends FormLayout {
 	List<CommunityReferenceDto> communities;
 	List<CommunityReferenceDto> communitiesx;
 
-	// TODO: Change labels to use IL8N names for internationalisation
-	// NOTE: Fields should use the same naming convention as in UserDto.class
 	TextField firstName = new TextField(I18nProperties.getCaption(Captions.firstName));
 	TextField lastName = new TextField(I18nProperties.getCaption(Captions.lastName));
 
@@ -111,12 +104,6 @@ public class UserForm extends FormLayout {
 	TextField phone = new TextField(I18nProperties.getCaption(Captions.User_phone));
 	TextField userPosition = new TextField(I18nProperties.getCaption(Captions.User_userPosition));
 	TextField userOrganisation = new TextField(I18nProperties.getCaption(Captions.User_userOrganisation));
-
-//	ComboBox<AreaReferenceDto> userRegion = new ComboBox<>(I18nProperties.getCaption(Captions.area));
-//	ComboBox<RegionReferenceDto> userProvince = new ComboBox<>(I18nProperties.getCaption(Captions.region));
-//	ComboBox<DistrictReferenceDto> userDistrict = new ComboBox<>(I18nProperties.getCaption(Captions.district));
-//	MultiSelectComboBox<CommunityReferenceDto> userCommunity = new MultiSelectComboBox<>(
-//			I18nProperties.getCaption(Captions.community));
 
 	ComboBox<AreaReferenceDto> region = new ComboBox<>(I18nProperties.getCaption(Captions.area));
 	ComboBox<RegionReferenceDto> province = new ComboBox<>(I18nProperties.getCaption(Captions.region));
@@ -134,16 +121,11 @@ public class UserForm extends FormLayout {
 	private boolean active = true;
 
 	Checkbox commusr = new Checkbox(I18nProperties.getCaption(Captions.User_commonUser));
-//	commusr.addClassName();
-//	commusr.getStyle().set("display", "inline-flex");
 	private boolean isCommonUser = false;
 	MultiSelectComboBox<UserRole> userRoles = new MultiSelectComboBox<>(
 			I18nProperties.getCaption(Captions.User_userRoles));
 
 	CheckboxGroup<FormAccess> formAccess = new CheckboxGroup<>();
-//	CheckboxGroup<FormAccess> preCampformAccess = new CheckboxGroup<>();
-//	CheckboxGroup<FormAccess> intraCampformAccess = new CheckboxGroup<>();
-//	CheckboxGroup<FormAccess> postCampformAccess = new CheckboxGroup<>();
 
 	ComboBox<Language> language = new ComboBox<>(I18nProperties.getCaption(Captions.language));
 
@@ -174,12 +156,14 @@ public class UserForm extends FormLayout {
 
 	boolean editmode = false;
 	UserDto user;
-//	Button resetUserPassword = new Button();
 
 	public UserForm(List<AreaReferenceDto> regions, List<RegionReferenceDto> provinces,
 			List<DistrictReferenceDto> districts, UserDto user, boolean editmode) {
 
 		this.user = user;
+		
+
+		
 		addClassName("contact-form");
 		HorizontalLayout hor = new HorizontalLayout();
 		Icon vaadinIcon = new Icon(VaadinIcon.ARROW_CIRCLE_LEFT_O);
@@ -188,26 +172,28 @@ public class UserForm extends FormLayout {
 		HorizontalLayout layout = new HorizontalLayout(vaadinIcon, prefixText);
 		vaadinIcon.setClassName("backButton");
 		hor.setJustifyContentMode(JustifyContentMode.START);
-//		hor.setWidthFull();
 		hor.add(layout);
 		hor.setHeight("5px");
 		hor.setId("backLayout");
 		hor.getStyle().set("width", "none !important");
-//		this.setColspan(hor, 0);
-		layout.addClickListener(event -> fireEvent(new CloseEvent(this)));
+		layout.addClickListener(event -> {
+		    VaadinSession.getCurrent().setAttribute("contact-form", null);
+		    fireEvent(new CloseEvent(this));
+		});
 		add(hor);
-		// Configure what is passed to the fields here
 		configureFields(user);
 		System.out.println("____TRSTING LANGUAGE TRANSLATOR : " + I18nProperties.getUserLanguage());
 		updatePasswordDialog();
 	}
 
 	public UserForm() {
-		// TODO Auto-generated constructor stub
 	}
 
 	@SuppressWarnings("unchecked")
 	public void configureFields(UserDto user) {
+		JurisdictionLevel currentJurisdiction = UserRole.getJurisdictionLevel(userProvider.getUser().getUserRoles());
+
+		
 
 		pInfo = new H2(I18nProperties.getString(Strings.headingPersonData));
 		this.setColspan(pInfo, 2);
@@ -221,15 +207,13 @@ public class UserForm extends FormLayout {
 				.bind(userx -> userx.getFirstName(), (userx, firstName) -> userx.setFirstName(firstName));
 		this.binder.forField(this.lastName).asRequired(I18nProperties.getCaption("lastNameRequired"))
 				.bind(userx -> userx.getLastName(), (userx, lastName) -> userx.setLastName(lastName));
-		this.binder.forField(this.userEmail)// .asRequired(I18nProperties.getCaption("lastNameRequired"))
-				.bind(userx -> userx.getUserEmail(), (userx, userEmail) -> userx.setUserEmail(userEmail));
-		this.binder.forField(this.phone)// .asRequired(I18nProperties.getCaption("lastNameRequired"))
-				.bind(userx -> userx.getPhone(), (userx, phone) -> userx.setPhone(phone));
-		this.binder.forField(this.userPosition)// .asRequired(I18nProperties.getCaption("lastNameRequired"))
-				.bind(userx -> userx.getUserPosition(), (userx, userPosition) -> userx.setUserPosition(userPosition));
-		this.binder.forField(this.userOrganisation)// .asRequired(I18nProperties.getCaption("lastNameRequired"))
-				.bind(userx -> userx.getUserOrganisation(),
-						(userx, userOrganisation) -> userx.setUserOrganisation(userOrganisation));
+		this.binder.forField(this.userEmail).bind(userx -> userx.getUserEmail(),
+				(userx, userEmail) -> userx.setUserEmail(userEmail));
+		this.binder.forField(this.phone).bind(userx -> userx.getPhone(), (userx, phone) -> userx.setPhone(phone));
+		this.binder.forField(this.userPosition).bind(userx -> userx.getUserPosition(),
+				(userx, userPosition) -> userx.setUserPosition(userPosition));
+		this.binder.forField(this.userOrganisation).bind(userx -> userx.getUserOrganisation(),
+				(userx, userOrganisation) -> userx.setUserOrganisation(userOrganisation));
 		this.binder.forField(this.userName).asRequired("Please Fill Out a First and Last Name")
 				.bind(userx -> userx.getUserName(), (userx, userOrganisation) -> userx.setUserName(userOrganisation));
 
@@ -237,101 +221,104 @@ public class UserForm extends FormLayout {
 		activeCheck.setLabel("Active ?");
 		activeCheck.setValue(active);
 
-		this.binder.forField(this.activeCheck)// .asRequired("Please Fill Out a First and Last Name")
-				.bind(userx -> userx.isActive(), (userx, userOrganisation) -> userx.setActive(userOrganisation));
+		this.binder.forField(this.activeCheck).bind(userx -> userx.isActive(),
+				(userx, userOrganisation) -> userx.setActive(userOrganisation));
 
-		this.binder.forField(this.commusr)// .asRequired("Please Fill Out a First and Last Name")
-				.bind(userx -> userx.isCommomUser(),
-						(userx, userOrganisation) -> userx.setCommomUser(userOrganisation));
+		this.binder.forField(this.commusr).bind(userx -> userx.isCommomUser(),
+				(userx, userOrganisation) -> userx.setCommomUser(userOrganisation));
 
 		formAccess.setLabel(I18nProperties.getCaption(Captions.formAccess));
 
-		this.binder.forField(this.formAccess)// .asRequired("Please Fill Out a First and Last Name")
-				.bind(userx -> userx.getFormAccess(),
-						(userx, userOrganisation) -> userx.setFormAccess(userOrganisation));
+		this.binder.forField(this.formAccess).bind(userx -> userx.getFormAccess(),
+				(userx, userOrganisation) -> userx.setFormAccess(userOrganisation));
 
-		this.binder.forField(this.language)// .asRequired("Please Fill Out a First and Last Name")
-				.bind(userx -> userx.getLanguage(), (userx, userOrganisation) -> userx.setLanguage(userOrganisation));
+		this.binder.forField(this.language).bind(userx -> userx.getLanguage(),
+				(userx, userOrganisation) -> userx.setLanguage(userOrganisation));
 
 		this.binder.forField(this.userRoles).withValidator(new UserRolesValidator())
-				.asRequired(I18nProperties.getCaption(Captions.userRoleRequired))// .asRequired("Please Fill Out a First
-																					// and Last Name")
+				.asRequired(I18nProperties.getCaption(Captions.userRoleRequired))
 				.bind(userx -> userx.getUserRoles(), (userx, userOrganisation) -> userx.setUserRoles(userOrganisation));
 
-		this.binder.forField(this.region)// .withValidator(new UserRolesValidator())
-				// .asRequired(I18nProperties.getCaption(Captions.userRoleRequired))//.asRequired("Please
-				// Fill Out a First and Last Name")
-				.bind(userx -> userx.getArea(), (userx, userOrganisation) -> userx.setArea(userOrganisation));
+		this.binder.forField(this.region).bind(userx -> userx.getArea(),
+				(userx, userOrganisation) -> userx.setArea(userOrganisation));
 
-		this.binder.forField(this.province)// .withValidator(new UserRolesValidator())
-				// .asRequired(I18nProperties.getCaption(Captions.userRoleRequired))//.asRequired("Please
-				// Fill Out a First and Last Name")
-				.bind(userx -> userx.getRegion(), (userx, userOrganisation) -> userx.setRegion(userOrganisation));
+		this.binder.forField(this.province).bind(userx -> userx.getRegion(),
+				(userx, userOrganisation) -> userx.setRegion(userOrganisation));
 
-		this.binder.forField(this.district)// .withValidator(new UserRolesValidator())
-				// .asRequired(I18nProperties.getCaption(Captions.userRoleRequired))//.asRequired("Please
-				// Fill Out a First and Last Name")
-				.bind(userx -> userx.getDistrict(), (userx, userOrganisation) -> userx.setDistrict(userOrganisation));
+		this.binder.forField(this.district).bind(userx -> userx.getDistrict(),
+				(userx, userOrganisation) -> userx.setDistrict(userOrganisation));
 
 		this.binder.forField(this.districtMulti);
 		binder.bind(districtMulti, userx -> userx.getDistricts(),
-				(userx, userOrganisation) -> userx.setDistricts(userOrganisation));// UserDto::getDistricts,
-																					// UserDto::setDistricts);
+				(userx, userOrganisation) -> userx.setDistricts(userOrganisation));
 
-		districtMulti.setVisible(true);
+		districtMulti.setVisible(false);
 
 		this.binder.forField(this.clusterNo);
 		binder.bind(clusterNo, userx -> userx.getCommunity(),
-				(userx, userOrganisation) -> userx.setCommunity(userOrganisation));// UserDto::getDistricts,
-																					// UserDto::setDistricts);
+				(userx, userOrganisation) -> userx.setCommunity(userOrganisation));
+
+		// Sync the selected cluster numbers onto the bean's communitynos (registered once)
+		clusterNo.addValueChangeListener(ex -> {
+			@SuppressWarnings("unchecked")
+			Set<CommunityReferenceDto> selected = (Set<CommunityReferenceDto>) ex.getValue();
+			if (selected != null && !selected.isEmpty()) {
+				Set<String> selectedClusterNumbers = new HashSet<>();
+				for (CommunityReferenceDto community : selected) {
+					if (community.getNumber() != null) {
+						selectedClusterNumbers.add(community.getNumber().toString());
+					}
+				}
+				user.setCommunitynos(selectedClusterNumbers);
+			} else {
+				user.setCommunitynos(new HashSet<>());
+			}
+		});
 
 		roles = FacadeProvider.getUserRoleConfigFacade().getEnabledUserRoles();
 		roles.remove(UserRole.BAG_USER);
-//		System.out.println("User typ  beforee sorting  " + userProvider.getUser().getUsertype());
-//		userProvider.getUser().getUsertype() == UserType.EOC_USER
+
 		if (userProvider.getUser().getUsertype() == UserType.WHO_USER) {
 			if (!roles.contains(UserRole.PUBLISH_USER)) {
 				roles.add(UserRole.PUBLISH_USER);
-//				System.out.println("PUBLISH_USER add +++___________333333: " + roles);
 			}
 			if (!roles.contains(UserRole.EDITOR_USER)) {
 				roles.add(UserRole.EDITOR_USER);
-
 			}
 		} else {
 			if (roles.contains(UserRole.PUBLISH_USER)) {
 				roles.remove(UserRole.PUBLISH_USER);
-//				System.out.println("PUBLISH_USER removed +++___________333333: " + roles);
 			}
 			if (!roles.contains(UserRole.EDITOR_USER)) {
 				roles.add(UserRole.EDITOR_USER);
-//				System.out.println("PUBLISH_USER removed +++___________333333: " + roles);
 			}
 		}
 
-		List<UserRole> rolesz = new ArrayList<>(roles); // Convert Set to List
-		roles.remove(UserRole.BAG_USER);
+		Set<UserRole> loggedInRoles = null;
+		try {
+			loggedInRoles = UserProvider.getCurrent().getUserRoles();
+		} catch (Exception e) {
+			loggedInRoles = userProvider.getUser().getUserRoles();
+		}
 
-//		System.out.println("Roles beforee sorting  " + roles);
+		roles = getHierarchicalManageableRoles(loggedInRoles, user != null ? user.getUserRoles() : null, roles);
 
-		// Sorting the user roles usng comprtor
+		List<UserRole> rolesz = new ArrayList<>(roles);
+		rolesz.remove(UserRole.BAG_USER);
+
 		Collections.sort(rolesz, new UserRoleCustomComparator());
 
-		// then i'm converting back to a set for facade to handle save properly.
-		Set<UserRole> sortedUserRoles = new TreeSet<>(rolesz);
-
+		Set<UserRole> sortedUserRoles = new LinkedHashSet<>(rolesz);
 		userRoles.setItems(sortedUserRoles);
 
 		this.setColspan(userRoles, 1);
 		userRoles.addValueChangeListener(e -> {
 			updateFieldsByUserRole(e.getValue());
 			validateUserRoles();
+			
 		});
 
-//		userRoles.addValueChangeListener(e -> updateFieldsByUserRole(e.getValue()));
-
 		ComboBox<UserType> userTypes = new ComboBox<UserType>();
-
 		userTypes.setItems(UserType.values());
 
 		language.setItemLabelGenerator(Language::toString);
@@ -367,14 +354,14 @@ public class UserForm extends FormLayout {
 				}
 			}
 		});
+		
+	
 
 		province.setItemLabelGenerator(RegionReferenceDto::getCaption);
 		province.addValueChangeListener(e -> {
 
 			if (e.getValue() != null && userRoles.getValue() != null) {
 				final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles.getValue());
-				System.out.println((jurisdictionLevel == JurisdictionLevel.DISTRICT) + " +++___________111"
-						+ userRoles.getValue());
 				if (jurisdictionLevel == JurisdictionLevel.DISTRICT
 						&& userRoles.getValue().contains(UserRole.SURVEILLANCE_OFFICER)) {
 
@@ -387,51 +374,33 @@ public class UserForm extends FormLayout {
 					districtMulti.setLabel(I18nProperties.getCaption(Captions.district));
 
 					for (DistrictReferenceDto item : districts) {
-						System.out.println((jurisdictionLevel == JurisdictionLevel.DISTRICT) + " +++___________222: "
-								+ item.getCaption());
-
 						if (item.getCaption() == null) {
-
 							Notification notification = new Notification();
 							notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 							notification.setPosition(Position.MIDDLE);
 							Button closeButton = new Button(new Icon("lumo", "cross"));
 							closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 							closeButton.getElement().setAttribute("aria-label", "Close");
-							closeButton.addClickListener(event -> {
-								notification.close();
-							});
-
+							closeButton.addClickListener(event -> notification.close());
 							Paragraph text = new Paragraph("District cannot be empty, please contact support");
-
 							HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 							layout.setAlignItems(Alignment.CENTER);
-
 							notification.add(layout);
 							notification.open();
 						}
-
-//							item.setCaption(item.getNumber() != null ? item.getNumber().toString() : null);
 					}
-//						Collections.sort(items, CommunityReferenceDto.clusternumber);
 
 					districtMulti.setItems(districts);
 					district.setItems(districts);
 					isDistrictMulti = true;
 					districtMulti.getChildren().forEach(checkbox -> {
-//				            checkbox.getElement().setProperty("id", "checkbox-" + checkbox.getLabel());
 						checkbox.getElement().getClassList().add("custom-checkbox-class");
-
 					});
-//			            
 
 				} else if (jurisdictionLevel == JurisdictionLevel.DISTRICT
 						&& !userRoles.getValue().contains(UserRole.SURVEILLANCE_OFFICER)) {
 
 					districts = FacadeProvider.getDistrictFacade().getAllActiveByRegion(e.getValue().getUuid());
-					System.out.println(" +++___________333333: elseif ");
-					System.out.println(jurisdictionLevel
-							+ " jurisdictionLevel == JurisdictionLevel.DISTRIC+++___________333333: elseif ");
 
 					if (userProvider.getUser().getLanguage().toString().equals("Pashto")) {
 						district.setItems(
@@ -444,7 +413,6 @@ public class UserForm extends FormLayout {
 					}
 
 					isDistrictMulti = false;
-
 					districtMulti.setVisible(false);
 					district.setVisible(true);
 					clusterNo.setVisible(false);
@@ -452,9 +420,6 @@ public class UserForm extends FormLayout {
 				} else if (jurisdictionLevel == JurisdictionLevel.REGION) {
 
 					districts = FacadeProvider.getDistrictFacade().getAllActiveByRegion(e.getValue().getUuid());
-					System.out.println(" +++___________333333: elseif ");
-					System.out.println(jurisdictionLevel
-							+ " jurisdictionLevel == JurisdictionLevel.DISTRIC+++___________333333: elseif ");
 
 					if (userProvider.getUser().getLanguage().toString().equals("Pashto")) {
 						district.setItems(
@@ -467,7 +432,6 @@ public class UserForm extends FormLayout {
 					}
 
 					isDistrictMulti = false;
-
 					districtMulti.setVisible(false);
 					district.setVisible(false);
 					clusterNo.setVisible(false);
@@ -475,7 +439,6 @@ public class UserForm extends FormLayout {
 				} else {
 
 					districts = FacadeProvider.getDistrictFacade().getAllActiveByRegion(e.getValue().getUuid());
-					System.out.println(" +++___________333333: else ");
 					if (userProvider.getUser().getLanguage().toString().equals("Pashto")) {
 						district.setItems(
 								FacadeProvider.getDistrictFacade().getAllActiveByRegionPashto(e.getValue().getUuid()));
@@ -487,11 +450,9 @@ public class UserForm extends FormLayout {
 					}
 
 					isDistrictMulti = false;
-
 					districtMulti.setVisible(false);
 					district.setVisible(true);
 					clusterNo.setVisible(false);
-
 				}
 			}
 
@@ -499,85 +460,28 @@ public class UserForm extends FormLayout {
 
 		district.setItemLabelGenerator(DistrictReferenceDto::getCaption);
 		district.addValueChangeListener(e -> {
+			Set<UserRole> selectedRoles = userRoles.getValue();
+			boolean isObserver = selectedRoles != null && selectedRoles.contains(UserRole.DISTRICT_OBSERVER);
+			JurisdictionLevel selectedLevel = (selectedRoles == null || selectedRoles.isEmpty()) ? null
+					: UserRole.getJurisdictionLevel(selectedRoles);
 
-			System.out.println(isDistrictMulti
-					+ " isDistrictMultiisDistrictMultivvvvvvvddddddDISTRICT CHANGES!!ssssssssssefasdfa:");
-
-			if (!isDistrictMulti && !userRoles.getValue().contains(UserRole.DISTRICT_OBSERVER)) {
+			if (!isDistrictMulti && !isObserver) {
 				DistrictReferenceDto districtDto = (DistrictReferenceDto) e.getValue();
-				System.out.println(districtDto + " vvvvvvvddddddDISTRICT CHANGES!!ssssssssssefasdfa:" + e.getValue());
 
 				if (e.getValue() != null) {
-					clusterNo.setVisible(true);
-					this.setColspan(clusterNo, 2);
-					communities = FacadeProvider.getCommunityFacade().getAllActiveByDistrict(e.getValue().getUuid());
-
-					clusterNo.setLabel(I18nProperties.getCaption(Captions.clusterNumber));
-
-					if (districtDto != null) {
-
-						List<CommunityReferenceDto> items = FacadeProvider.getCommunityFacade()
-								.getAllActiveByDistrict(districtDto.getUuid());
-						for (CommunityReferenceDto item : items) {
-							if (item.getNumber() == null) {
-
-								Notification notification = new Notification();
-								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-								notification.setPosition(Position.MIDDLE);
-								Button closeButton = new Button(new Icon("lumo", "cross"));
-								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> {
-									notification.close();
-								});
-
-								Paragraph text = new Paragraph(
-										"Cluster Number cannot be empty, please contact support");
-
-								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
-								layout.setAlignItems(Alignment.CENTER);
-
-								notification.add(layout);
-								notification.open();
-							}
-
-							item.setCaption(item.getNumber() != null ? item.getNumber().toString() : null);
-						}
-						Collections.sort(items, CommunityReferenceDto.clusternumber);
-
-						clusterNo.setItems(items);
-						clusterNo.getChildren().forEach(checkbox -> {
-//			            checkbox.getElement().setProperty("id", "checkbox-" + checkbox.getLabel());
-							checkbox.getElement().getClassList().add("custom-checkbox-class");
-
-						});
-
-						clusterNo.addValueChangeListener(ex -> {
-
-							if (ex.getValue() != null) {
-
-								Set<String> yyy = new HashSet<>();
-								yyy.add(ex.getValue().toString());
-
-								System.out.println(yyy + "SEt of users clusters after being saved ");
-
-								user.setCommunitynos(yyy);
-
-							}
-
-						});
-//		            
+					if (selectedLevel == JurisdictionLevel.COMMUNITY) {
+						populateClusterOptions(districtDto);
+					} else {
+						clusterNo.clear();
+						clusterNo.setVisible(false);
 					}
 				}
-			} else if (!isDistrictMulti && userRoles.getValue().contains(UserRole.DISTRICT_OBSERVER)) {
+			} else if (!isDistrictMulti && isObserver) {
 				if (e.getValue() != null) {
 					clusterNo.clear();
-
 					clusterNo.setVisible(false);
-
 				}
 			} else {
-
 				district.clear();
 				district.setVisible(false);
 				clusterNo.clear();
@@ -585,47 +489,37 @@ public class UserForm extends FormLayout {
 			}
 		});
 
-		clusterNo.addValueChangeListener(e -> {
-
-			if (e.getValue() != null) {
-
-			}
-
-		});
 
 		commusr.addValueChangeListener(e -> {
-
-			System.out.println((boolean) e.getValue());
 			if ((boolean) e.getValue() == true) {
 				userTypes.setValue(UserType.COMMON_USER);
-				sortedUserRoles.remove(UserRole.ADMIN);
-				sortedUserRoles.remove(UserRole.COMMUNITY_INFORMANT);
-				sortedUserRoles.remove(UserRole.AREA_ADMIN_SUPERVISOR);
-				sortedUserRoles.remove(UserRole.ADMIN_SUPERVISOR);
-				sortedUserRoles.remove(UserRole.BAG_USER);
-//				sortedUserRoles.remove(UserRole.REST_USER);
-				sortedUserRoles.remove(UserRole.PUBLISH_USER);
-				sortedUserRoles.remove(UserRole.EDITOR_USER);
 
-				userRoles.setItems(sortedUserRoles);
+				// Create a temporary copy so we don't permanently destroy the admin's role list
+				Set<UserRole> filteredCommonRoles = new LinkedHashSet<>(sortedUserRoles);
+				filteredCommonRoles.remove(UserRole.ADMIN);
+				filteredCommonRoles.remove(UserRole.COMMUNITY_INFORMANT);
+				filteredCommonRoles.remove(UserRole.AREA_ADMIN_SUPERVISOR);
+				filteredCommonRoles.remove(UserRole.ADMIN_SUPERVISOR);
+				filteredCommonRoles.remove(UserRole.BAG_USER);
+				filteredCommonRoles.remove(UserRole.PUBLISH_USER);
+				filteredCommonRoles.remove(UserRole.EDITOR_USER);
+
+				userRoles.setItems(filteredCommonRoles);
 			}
 
 			if ((boolean) e.getValue() == false) {
-				Set<UserRole> sortedUserRoless = new TreeSet<>(rolesz);
-				userRoles.setItems(sortedUserRoless);
+				// Restore the original sorted list cleanly
+				userRoles.setItems(sortedUserRoles);
 			}
 		});
 
 		formAccess.setLabel(I18nProperties.getCaption(Captions.formAccess));
-
 		formAccess.setItemLabelGenerator(FormAccess::getDisplayName);
 
 		this.setColspan(activeCheck, 2);
 		activeCheck.setLabel(I18nProperties.getCaption(Captions.User_active));
 		activeCheck.setValue(active);
 		binder.forField(activeCheck).bind(UserDto::isActive, UserDto::setActive);
-
-		// NOTE: Disabling FormAccess restriction for EOC Users
 
 		formAccessesList.add(FormAccess.ARCHIVE);
 		
@@ -652,43 +546,36 @@ public class UserForm extends FormLayout {
 
 		formAccess.setItems(formAccessesList);
 
-
 		Div formAccessCheckers = new Div();
-
 		formAccessCheckers.add(formAccess);
 
 		language.setWidthFull();
 		region.setWidthFull();
 		province.setWidthFull();
 		district.setWidthFull();
+		
+//		applyGeographicScope(currentJurisdiction);
 
-		VerticalLayout otherFormField = new VerticalLayout(language, region, province, district);
+		VerticalLayout otherFormField = new VerticalLayout(language, region, province, district, districtMulti);
 		formAccess.setId("formaccesschkid");
-		VerticalLayout formAccessParentLayout = new VerticalLayout(formAccess);// , preCampformAccess,
-																				// intraCampformAccess,
-		// postCampformAccess);
+		VerticalLayout formAccessParentLayout = new VerticalLayout(formAccess);
 		formAccessParentLayout.setPadding(false);
 		formAccessParentLayout.setSpacing(false);
 		HorizontalLayout allFieldLayout = new HorizontalLayout(formAccessParentLayout, otherFormField);
 		this.setColspan(allFieldLayout, 2);
 
+		// Initial state: all geographic fields are hidden until a role is chosen.
+		// Role-driven visibility is managed by updateFieldsByUserRole().
+		region.setVisible(false);
+		province.setVisible(false);
+		district.setVisible(false);
+		districtMulti.setVisible(false);
+		clusterNo.setVisible(false);
+
 		add(pInfo, firstName, lastName, userEmail, phone, userPosition, userOrganisation, userData, userName,
-				activeCheck, commusr, userRoles, allFieldLayout, districtMulti, clusterNo);
+				activeCheck, commusr, userRoles, allFieldLayout, clusterNo);
 
 		createButtonsLayout();
-//		String checkBoxDivider = "var parentDiv = document.getElementById(\"formaccesschkid\");\n"
-//				+ "if (parentDiv) {\n" + "var children = parentDiv.querySelectorAll(\"vaadin-checkbox\");\n"
-//				+ "for (var i = 0; i < children.length; i++) {\n" + "console.log(children[i]);\n" + "if (i === 0) {\n"
-//				+ "var newContentL = '<hr><b class=\"formaccesschkbox\">Pre-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "if (i === 4) {\n" + "var newContentL = '<hr><b class=\"formaccesschkbox\">Intra-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "if (i === 8) {\n" + "var newContentL = '<hr><b class=\"formaccesschkbox\">Post-Campaign</b><hr>';\n"
-//				+ "children[i].insertAdjacentHTML('afterend', newContentL);\n" + "}\n"
-//
-//				+ "}}";
 		
 		String checkBoxDivider = "var parentDiv = document.getElementById(\"formaccesschkid\");\n"
 				+ "if (parentDiv) {\n" 
@@ -725,9 +612,7 @@ public class UserForm extends FormLayout {
 	}
 
 	public void updatePasswordDialog() {
-
 		_dialog.setHeader("Update Password");
-
 		_dialog.setCloseOnEsc(false);
 		_dialog.setCancelable(true);
 		_dialog.addCancelListener(e -> _dialog.close());
@@ -744,82 +629,32 @@ public class UserForm extends FormLayout {
 	public void makeNewPassword(String userUuid, String userEmail, String userName) {
 		String newPassword = FacadeProvider.getUserFacade().resetPassword(userUuid);
 
-//		String newPassword = FacadeProvider.getUserFacade().createMemorablePassword(userUuid);
+		Dialog newUserPop = new Dialog();
+		newUserPop.setClassName("passwordsDialog");
+		VerticalLayout infoLayout = new VerticalLayout();
 
-		if (StringUtils.isBlank(userEmail)
-				|| AuthProvider.getProvider(FacadeProvider.getConfigFacade()).isDefaultProvider()) {
+		Paragraph infoText = new Paragraph("Please , copy this password, it is shown only once.");
+		newUserPop.setHeaderTitle("Password Updated");
 
-			Dialog newUserPop = new Dialog();
-			newUserPop.setClassName("passwordsDialog");
-			VerticalLayout infoLayout = new VerticalLayout();
+		H3 username = new H3(I18nProperties.getCaption(Captions.Login_username) + " : " + userName);
+		username.getStyle().set("color", "#0D6938");
 
-			Paragraph infoText = new Paragraph("Please , copy this password, it is shown only once.");
-			newUserPop.setHeaderTitle("Password Updated");
+		H3 password = new H3(I18nProperties.getCaption(Captions.Login_password) + " : " + newPassword);
+		password.getStyle().set("color", "#0D6938");
 
-			H3 username = new H3(I18nProperties.getCaption(Captions.Login_username) + " : " + userName);
-			username.getStyle().set("color", "#0D6938");
-
-			H3 password = new H3(I18nProperties.getCaption(Captions.Login_password) + " : " + newPassword);
-			password.getStyle().set("color", "#0D6938");
-
-			infoLayout.add(username, password);
-
-			newUserPop.add(infoLayout);
-
-			newUserPop.setOpened(true);
-
-		} else {
-			Dialog newUserPop = new Dialog();
-			newUserPop.setClassName("passwordsDialog");
-			VerticalLayout infoLayout = new VerticalLayout();
-
-			Paragraph infoText = new Paragraph("Please , copy this password, it is shown only once.");
-			newUserPop.setHeaderTitle("Password Updated");
-
-			H3 username = new H3(I18nProperties.getCaption(Captions.Login_username) + " : " + userName);
-			username.getStyle().set("color", "#0D6938");
-
-			H3 password = new H3(I18nProperties.getCaption(Captions.Login_password) + " : " + newPassword);
-			password.getStyle().set("color", "#0D6938");
-
-			infoLayout.add(username, password);
-
-			newUserPop.add(infoLayout);
-
-			newUserPop.setOpened(true);
-		}
+		infoLayout.add(username, password);
+		newUserPop.add(infoLayout);
+		newUserPop.setOpened(true);
 	}
 
 	public void suggestUserName(boolean editMode) {
-
-//		fireEvent(new UserFieldValueChangeEvent(this, binder.getBean()));
 		if (editMode) {
-
 			lastName.addValueChangeListener(e -> {
-
 				if (userName.isEmpty()) {
 					userName.setValue(UserHelper.getSuggestedUsername(firstName.getValue(), lastName.getValue()));
 				}
 			});
-
 		}
-	}
-
-	private void handleSelectionChange(SelectionEvent<CheckboxGroup<FormAccess>, FormAccess> event) {
-
-//		if(formAccess.getSelectedItems().size() > 0){
-//			formAccess.deselectAll();
-//		}
-//		if(preCampformAccess.getSelectedItems().size() > 0){
-//			preCampformAccess.deselectAll();
-//		}
-//		if(intraCampformAccess.getSelectedItems().size() > 0){
-//			intraCampformAccess.deselectAll();
-//		}
-//		if(postCampformAccess.getSelectedItems().size() > 0){
-//			postCampformAccess.deselectAll();
-//		}
-
 	}
 
 	private void createButtonsLayout() {
@@ -832,13 +667,7 @@ public class UserForm extends FormLayout {
 		close.setEnabled(true);
 		close.addClickListener(event -> {
 			VaadinSession.getCurrent().setAttribute("contact-form", null);
-
 			fireEvent(new CloseEvent(this));
-//			userForm.addCloseListener(evemnt -> {
-//			    // Remove form data from session
-//			    VaadinSession.getCurrent().setAttribute("contact-form", null);
-//			});
-
 		});
 
 		createPassword.addClickListener(event -> {
@@ -856,21 +685,17 @@ public class UserForm extends FormLayout {
 	}
 
 	public boolean checkUnitAssignmentByJurisdictionLevel() {
+		if (userRoles.getValue() == null || userRoles.getValue().isEmpty()) {
+			return true;
+		}
 		for (UserRole role : userRoles.getValue()) {
 			if (role.getJurisdictionLevel() == JurisdictionLevel.COMMUNITY) {
-
-				System.out.println("Cluster Level User Detected " + clusterNo.getValue().toString());
 				if (clusterNo.getSelectedItems().size() == 0) {
 					clusterNo.setInvalid(true);
 					clusterNo.setErrorMessage("One or More Clusters Must be selected for Cluster Level Users.");
-//                clusterNo.focus();
-//                Notification.show("One or More Clusters Must be selected for Cluster Level Users.");
 					return false;
 				}
 			} else if (role.getJurisdictionLevel() == JurisdictionLevel.DISTRICT) {
-				System.out.println(district.getValue() + "District Level User Detected "
-						+ districtMulti.getValue().toString() + "hhhh" + districtMulti.getSelectedItems().size());
-
 				if (role == UserRole.SURVEILLANCE_OFFICER) {
 					if (districtMulti.getSelectedItems().size() == 0) {
 						districtMulti.setInvalid(true);
@@ -882,6 +707,7 @@ public class UserForm extends FormLayout {
 						district.setInvalid(true);
 						district.setErrorMessage("One or More Districts Must be selected for District Level Users.");
 						district.focus();
+						return false;
 					}
 				}
 			} else if (role.getJurisdictionLevel() == JurisdictionLevel.REGION) {
@@ -889,7 +715,6 @@ public class UserForm extends FormLayout {
 					province.setInvalid(true);
 					province.setErrorMessage("One or More Province(s) Must be selected for Provincial Level Users.");
 					province.focus();
-//                Notification.show("One or More Province(s) Must be selected for Provincial Level Users.");
 					return false;
 				}
 			} else if (role.getJurisdictionLevel() == JurisdictionLevel.AREA) {
@@ -897,23 +722,17 @@ public class UserForm extends FormLayout {
 					region.setInvalid(true);
 					region.setErrorMessage("One or More Region(s) Must be selected for Regional Level Users.");
 					region.focus();
-//                Notification.show("One or More Region(s) Must be selected for Regional Level Users.");
 					return false;
 				}
 			}
 		}
-		return true; // If no issues
+		return true;
 	}
 
 	public void validateAndSaveEdit(UserDto originalUser, String preceedingUsername) {
-
 		List<FormAccess> formAccesses = new ArrayList<>(binder.getBean().getFormAccess());
 
-		System.out.println(originalUser.getCommunitynos() + "TFOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
-				+ formAccesses.size() + originalUser.getCommunity());
-
 		if (formAccesses.size() == 0 || formAccesses.size() < 1) {
-
 			Notification notification = new Notification();
 			notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 			notification.setPosition(Position.MIDDLE);
@@ -930,34 +749,22 @@ public class UserForm extends FormLayout {
 			notification.open();
 
 		} else {
-
 			if (!checkUnitAssignmentByJurisdictionLevel()) {
 				return;
 			}
 
 			if (binder.validate().isOk()) {
-
 				boolean isErrored = false;
 
-				// userName
-
 				if (binder.getBean().getUserEmail() != null || binder.getBean().getUserEmail() != "") {
-
 					UserDto anyEmailFromDb = FacadeProvider.getUserFacade().getByEmail(binder.getBean().getUserEmail());
-
 					if (anyEmailFromDb == null) {
-
 						isErrored = false;
-
 					} else {
-
 						if (anyEmailFromDb.getUserName().trim().equals(originalUser.getUserName().trim())
 								&& !originalUser.getUserName().isEmpty()) {
-
 							isErrored = false;
-
 						} else {
-
 							isErrored = true;
 							Notification notification = new Notification();
 							notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -965,20 +772,13 @@ public class UserForm extends FormLayout {
 							Button closeButton = new Button(new Icon("lumo", "cross"));
 							closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 							closeButton.getElement().setAttribute("aria-label", "Close");
-							closeButton.addClickListener(event -> {
-								notification.close();
-							});
-
+							closeButton.addClickListener(event -> notification.close());
 							Paragraph text = new Paragraph("Error : Email already in the system.");
-
 							HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 							layout.setAlignItems(Alignment.CENTER);
-
 							notification.add(layout);
 							notification.open();
-
 							return;
-
 						}
 					}
 				}
@@ -990,72 +790,26 @@ public class UserForm extends FormLayout {
 					Button closeButton = new Button(new Icon("lumo", "cross"));
 					closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 					closeButton.getElement().setAttribute("aria-label", "Close");
-					closeButton.addClickListener(event -> {
-						notification.close();
-					});
-
+					closeButton.addClickListener(event -> notification.close());
 					Paragraph text = new Paragraph("Error : Username cannot contain white space");
-
 					HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 					layout.setAlignItems(Alignment.CENTER);
-
 					notification.add(layout);
 					notification.open();
 					isErrored = true;
 					return;
 				} else {
-
 					if (binder.getBean().getUserName() != null || userName != null) {
-
 						UserDto retrieveBinderUserFromDb = FacadeProvider.getUserFacade()
 								.getByUserName(binder.getBean().getUserName());
 						String originalUserx = originalUser == null ? binder.getBean().getUserName()
 								: originalUser.getUserName().trim();
 						if (retrieveBinderUserFromDb == null) {
 							if (binder.getBean().getUserName().contains(" ")) {
-								Notification notification = new Notification();
-								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-								notification.setPosition(Position.MIDDLE);
-								Button closeButton = new Button(new Icon("lumo", "cross"));
-								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> {
-									notification.close();
-								});
-
-								Paragraph text = new Paragraph("Error : Username cannot contain white space");
-
-								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
-								layout.setAlignItems(Alignment.CENTER);
-
-								notification.add(layout);
-								notification.open();
-								isErrored = true;
-								return;
+								// Handled above
 							} else if (!preceedingUsername.equals(originalUserx)) {
-								System.out
-										.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 								fireEvent(new SaveEvent(this, binder.getBean()));
-
 							} else {
-								Notification notification = new Notification();
-								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-								notification.setPosition(Position.MIDDLE);
-								Button closeButton = new Button(new Icon("lumo", "cross"));
-								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> {
-									notification.close();
-								});
-
-								Paragraph text = new Paragraph(
-										"Error : Unknow error surrounding the supplied username");
-
-								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
-								layout.setAlignItems(Alignment.CENTER);
-
-								notification.add(layout);
-								notification.open();
 								isErrored = true;
 								return;
 							}
@@ -1063,7 +817,6 @@ public class UserForm extends FormLayout {
 								&& !originalUserx.isEmpty() && !isErrored) {
 							if (preceedingUsername.equals(originalUserx)) {
 								fireEvent(new SaveEvent(this, binder.getBean()));
-
 							} else {
 								UserDto checkNewusernamefromDB = FacadeProvider.getUserFacade()
 										.getByUserName(binder.getBean().getUserName());
@@ -1076,51 +829,35 @@ public class UserForm extends FormLayout {
 									Button closeButton = new Button(new Icon("lumo", "cross"));
 									closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 									closeButton.getElement().setAttribute("aria-label", "Close");
-									closeButton.addClickListener(event -> {
-										notification.close();
-									});
-
+									closeButton.addClickListener(event -> notification.close());
 									Paragraph text = new Paragraph("Error : Username not unique");
-
 									HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 									layout.setAlignItems(Alignment.CENTER);
-
 									notification.add(layout);
 									notification.open();
-
 									return;
 								}
 							}
-
 						} else {
-
 							if (FacadeProvider.getUserFacade().getByUserName(binder.getBean().getUserName()) != null) {
-
 								Notification notification = new Notification();
 								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 								notification.setPosition(Position.MIDDLE);
 								Button closeButton = new Button(new Icon("lumo", "cross"));
 								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> {
-									notification.close();
-								});
-
+								closeButton.addClickListener(event -> notification.close());
 								Paragraph text = new Paragraph("Error : Username not unique");
-
 								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 								layout.setAlignItems(Alignment.CENTER);
-
 								notification.add(layout);
 								notification.open();
-
 								return;
 							}
 						}
 					}
 				}
 			} else {
-				// Collect validation errors from binder
 				StringBuilder errorMessages = new StringBuilder();
 				binder.validate().getFieldValidationErrors().forEach(error -> {
 					if (errorMessages.length() > 0) {
@@ -1129,7 +866,6 @@ public class UserForm extends FormLayout {
 					errorMessages.append("• ").append(error.getMessage().orElse("Validation error"));
 				});
 
-				// If no specific field errors, check for general validation issues
 				if (errorMessages.length() == 0) {
 					errorMessages.append("Please correct the validation errors and try again.");
 				}
@@ -1140,44 +876,30 @@ public class UserForm extends FormLayout {
 				Button closeButton = new Button(new Icon("lumo", "cross"));
 				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 				closeButton.getElement().setAttribute("aria-label", "Close");
-				closeButton.addClickListener(event -> {
-					notification.close();
-				});
-
+				closeButton.addClickListener(event -> notification.close());
 				Paragraph text = new Paragraph("Validation Error(s): " + errorMessages.toString());
-
 				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 				layout.setAlignItems(Alignment.CENTER);
-
 				notification.add(layout);
 				notification.open();
 				return;
 			}
 		}
-
 	}
 
 	public void validateAndSaveNew() {
 		boolean isErrored = false;
-
 		List<FormAccess> formAccesses = new ArrayList<>(binder.getBean().getFormAccess());
-		List<FormAccess> formAccessexs = new ArrayList<>();
-		formAccessexs.addAll(formAccesses);
-
-		System.out.println(formAccessexs + "ggggggggggggggggggggggggggggggggggggg" + formAccesses);
 
 		if (binder.validate().isOk()) {
-			if (formAccessexs.size() == 0 || formAccessexs.size() < 1) {
-
+			if (formAccesses.size() == 0 || formAccesses.size() < 1) {
 				Notification notification = new Notification();
 				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 				notification.setPosition(Position.MIDDLE);
 				Button closeButton = new Button(new Icon("lumo", "cross"));
 				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 				closeButton.getElement().setAttribute("aria-label", "Close");
-				closeButton.addClickListener(eventx -> {
-					notification.close();
-				});
+				closeButton.addClickListener(eventx -> notification.close());
 				Paragraph text = new Paragraph(
 						"Error : Form Access is Required, Please Fill Out a FormAccess to proceed.");
 				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
@@ -1186,75 +908,47 @@ public class UserForm extends FormLayout {
 				notification.open();
 
 			} else {
-
 				if (!checkUnitAssignmentByJurisdictionLevel()) {
 					return;
 				}
 
 				if (binder.validate().isOk()) {
-					System.out.println(binder.getBean().getUserEmail() != null
-							+ " validateAndSaveNew++++++++++++++++++++++++++++++++++++ "
-							+ binder.getBean().getUserEmail());
-
 					if (binder.getBean().getUserEmail() != null) {
-
 						UserDto binderEmailValidation = FacadeProvider.getUserFacade()
 								.getByEmail(binder.getBean().getUserEmail());
 
-						if (binderEmailValidation == null) {
-
-//					isErrored = false;
-//					fireEvent(new SaveEvent(this, binder.getBean()));
-
-						} else {
-
-							if (binderEmailValidation.getUserName().trim().equals(binder.getBean().getUserName().trim())
-									&& !binder.getBean().getUserName().isEmpty()) {
-//email has not changed
-//						fireEvent(new SaveEvent(this, binder.getBean()));
-							} else {
-
+						if (binderEmailValidation != null) {
+							if (!binderEmailValidation.getUserName().trim()
+									.equals(binder.getBean().getUserName().trim())) {
 								Notification notification = new Notification();
 								notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 								notification.setPosition(Position.MIDDLE);
 								Button closeButton = new Button(new Icon("lumo", "cross"));
 								closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 								closeButton.getElement().setAttribute("aria-label", "Close");
-								closeButton.addClickListener(event -> {
-									notification.close();
-								});
-
+								closeButton.addClickListener(event -> notification.close());
 								Paragraph text = new Paragraph("Error : Email already in the system...");
-
 								HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 								layout.setAlignItems(Alignment.CENTER);
-
 								notification.add(layout);
 								notification.open();
 								isErrored = true;
 								return;
-
 							}
 						}
 					}
 
 					if (FacadeProvider.getUserFacade().getByUserName(binder.getBean().getUserName()) != null) {
-
 						Notification notification = new Notification();
 						notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 						notification.setPosition(Position.MIDDLE);
 						Button closeButton = new Button(new Icon("lumo", "cross"));
 						closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 						closeButton.getElement().setAttribute("aria-label", "Close");
-						closeButton.addClickListener(event -> {
-							notification.close();
-						});
-
+						closeButton.addClickListener(event -> notification.close());
 						Paragraph text = new Paragraph("Error : Username not unique");
-
 						HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 						layout.setAlignItems(Alignment.CENTER);
-
 						notification.add(layout);
 						notification.open();
 						isErrored = true;
@@ -1266,22 +960,16 @@ public class UserForm extends FormLayout {
 						Button closeButton = new Button(new Icon("lumo", "cross"));
 						closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 						closeButton.getElement().setAttribute("aria-label", "Close");
-						closeButton.addClickListener(event -> {
-							notification.close();
-						});
-
+						closeButton.addClickListener(event -> notification.close());
 						Paragraph text = new Paragraph("Error : Username cannot contain white space");
-
 						HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 						layout.setAlignItems(Alignment.CENTER);
-
 						notification.add(layout);
 						notification.open();
 						isErrored = true;
 						return;
 					} else {
 						if (!isErrored) {
-
 							fireEvent(new SaveEvent(this, binder.getBean()));
 
 							UserActivitySummaryDto userActivitySummaryDto = new UserActivitySummaryDto();
@@ -1289,46 +977,11 @@ public class UserForm extends FormLayout {
 							userActivitySummaryDto.setAction("Created User: " + binder.getBean().getUserName());
 							userActivitySummaryDto.setCreatingUser_string(userProvider.getUser().getUserName());
 							FacadeProvider.getUserFacade().saveUserActivitySummary(userActivitySummaryDto);
-
-						} else {
-							// Collect validation errors from binder
-							StringBuilder errorMessages = new StringBuilder();
-							binder.validate().getFieldValidationErrors().forEach(error -> {
-								if (errorMessages.length() > 0) {
-									errorMessages.append("\n");
-								}
-								errorMessages.append("• ").append(error.getMessage().orElse("Validation error"));
-							});
-
-							// If no specific field errors, check for general validation issues
-							if (errorMessages.length() == 0) {
-								errorMessages.append("Please correct the validation errors and try again.");
-							}
-
-							Notification notification = new Notification();
-							notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-							notification.setPosition(Position.MIDDLE);
-							Button closeButton = new Button(new Icon("lumo", "cross"));
-							closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-							closeButton.getElement().setAttribute("aria-label", "Close");
-							closeButton.addClickListener(event -> {
-								notification.close();
-							});
-
-							Paragraph text = new Paragraph("Validation Error(s): " + errorMessages.toString());
-
-							HorizontalLayout layout = new HorizontalLayout(text, closeButton);
-							layout.setAlignItems(Alignment.CENTER);
-
-							notification.add(layout);
-							notification.open();
-							return;
 						}
 					}
 				}
 			}
 		} else {
-			// Collect validation errors from binder
 			StringBuilder errorMessages = new StringBuilder();
 			binder.validate().getFieldValidationErrors().forEach(error -> {
 				if (errorMessages.length() > 0) {
@@ -1337,7 +990,6 @@ public class UserForm extends FormLayout {
 				errorMessages.append("• ").append(error.getMessage().orElse("Validation error"));
 			});
 
-			// If no specific field errors, check for general validation issues
 			if (errorMessages.length() == 0) {
 				errorMessages.append("Please correct the validation errors and try again.");
 			}
@@ -1348,20 +1000,38 @@ public class UserForm extends FormLayout {
 			Button closeButton = new Button(new Icon("lumo", "cross"));
 			closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 			closeButton.getElement().setAttribute("aria-label", "Close");
-			closeButton.addClickListener(event -> {
-				notification.close();
-			});
-
+			closeButton.addClickListener(event -> notification.close());
 			Paragraph text = new Paragraph("Validation Error(s): " + errorMessages.toString());
-
 			HorizontalLayout layout = new HorizontalLayout(text, closeButton);
 			layout.setAlignItems(Alignment.CENTER);
-
 			notification.add(layout);
 			notification.open();
 			return;
 		}
 	}
+
+//	class UserRoleCustomComparator implements Comparator<UserRole> {
+//		private final String[] customOrder = { "Admin", "National Data Manager", "National Officer",
+//				"National Observer / Partner", "Regional Observer", "Regional Data Manager", "Regional Officer",
+//				"Provincial Observer", "Provincial Data Clerk", "Provincial Officer", "District Officer",
+//				"District Observer" };
+//
+//		@Override
+//		public int compare(UserRole role1, UserRole role2) {
+//			int index1 = indexOfRole(role1);
+//			int index2 = indexOfRole(role2);
+//			return Integer.compare(index1, index2);
+//		}
+//
+//		private int indexOfRole(UserRole role) {
+//			for (int i = 0; i < customOrder.length; i++) {
+//				if (customOrder[i].equals(role.name())) {
+//					return i;
+//				}
+//			}
+//			return customOrder.length;
+//		}
+//	}
 
 	class UserRoleCustomComparator implements Comparator<UserRole> {
 		private final String[] customOrder = { "Admin", "National Data Manager", "National Officer",
@@ -1371,52 +1041,31 @@ public class UserForm extends FormLayout {
 
 		@Override
 		public int compare(UserRole role1, UserRole role2) {
-			// Get the indexes of the roles in the custom order
 			int index1 = indexOfRole(role1);
 			int index2 = indexOfRole(role2);
 
-			// Compare based on their indexes in the custom order
+			// If neither role is explicitly listed in the customOrder array, sort them
+			// alphabetically
+			if (index1 == customOrder.length && index2 == customOrder.length) {
+				return role1.toString().compareToIgnoreCase(role2.toString());
+			}
 			return Integer.compare(index1, index2);
 		}
 
 		private int indexOfRole(UserRole role) {
+			String caption = role.toString(); // Use the localized UI string to match customOrder
 			for (int i = 0; i < customOrder.length; i++) {
-				if (customOrder[i].equals(role.name())) {
+				if (customOrder[i].equalsIgnoreCase(caption)) {
 					return i;
 				}
 			}
-			return customOrder.length; // Role not found, place it at the end
-		}
-	}
-
-	class IndexedUserRole implements Comparable<IndexedUserRole> {
-		private UserRole role;
-		private int index;
-
-		public IndexedUserRole(UserRole role, int index) {
-			this.role = role;
-			this.index = index;
-		}
-
-		public UserRole getRole() {
-			return role;
-		}
-
-		public int getIndex() {
-			return index;
-		}
-
-		@Override
-		public int compareTo(IndexedUserRole other) {
-			// Compare based on the assigned indexes
-			return Integer.compare(this.index, other.index);
+			return customOrder.length;
 		}
 	}
 
 	protected void validateUserRoles() {
 		map.forEach((key, value) -> {
 			Component formField = value;
-
 			if (formField instanceof MultiSelectComboBox) {
 				MultiSelectComboBox<UserRole> formFieldxx = (MultiSelectComboBox<UserRole>) formField;
 				UserRolesValidator userRolesValidator = new UserRolesValidator();
@@ -1427,8 +1076,6 @@ public class UserForm extends FormLayout {
 					formFieldxx.setInvalid(true);
 					formFieldxx.setErrorMessage(validation.getErrorMessage());
 					formFieldxx.setTooltipText(validation.getErrorMessage());
-				} else {
-
 				}
 			}
 		});
@@ -1436,12 +1083,16 @@ public class UserForm extends FormLayout {
 
 	private void resetpassword() {
 		fireEvent(new ResetPasswordEvent(this, binder.getBean()));
-
 	}
 
 	public void setUser(UserDto user) {
 		this.user = user;
 		binder.setBean(user);
+	    updateFieldsByUserRole(user.getUserRoles());
+
+//	    JurisdictionLevel currentJurisdiction = UserRole.getJurisdictionLevel(userProvider.getUser().getUserRoles());
+//	    applyGeographicScope(currentJurisdiction);
+	    
 	}
 
 	public static abstract class UserFormEvent extends ComponentEvent<UserForm> {
@@ -1473,7 +1124,6 @@ public class UserForm extends FormLayout {
 		DeleteEvent(UserForm source, UserDto user) {
 			super(source, user);
 		}
-
 	}
 
 	public static class CloseEvent extends UserFormEvent {
@@ -1509,93 +1159,286 @@ public class UserForm extends FormLayout {
 		return addListener(UserFieldValueChangeEvent.class, listener);
 	}
 
-	// TODO: This algorithm can be written better for good time and space complexity
-	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
-		final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
-		final boolean useCommunity = jurisdictionLevel == JurisdictionLevel.COMMUNITY;
-		final boolean useDistrictOnly = jurisdictionLevel == JurisdictionLevel.DISTRICT
-				&& userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
-		final boolean useDistrict = jurisdictionLevel == JurisdictionLevel.DISTRICT
-				&& !userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
-		final boolean useRegion = jurisdictionLevel == JurisdictionLevel.REGION || useDistrict;
-		final boolean useArea = jurisdictionLevel == JurisdictionLevel.AREA || useRegion;
-
-		System.out.println(useArea + "useArea" + useRegion + "useRegion" + useDistrict + "useDistrict" + useDistrictOnly
-				+ "useDistrictOnly" + useCommunity + "useCommunity");
-		if (useCommunity) {
-
-			System.out.println(useCommunity + "useCommunity");
-
-			clusterNo.setVisible(true);
-			district.setVisible(true);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useDistrictOnly) {
-
-			System.out.println(useDistrictOnly + "useDistrictOnly");
-
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-//			district.clear();
-			district.setVisible(false);
-			districtMulti.setVisible(true);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useDistrict) {
-
-			System.out.println(useDistrict + "useDistrict");
-
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useRegion) {
-
-			System.out.println(useRegion + "useRegion");
-
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.setVisible(true);
-			region.setVisible(true);
-		} else if (useArea) {
-
-			System.out.println(useArea + "useArea");
-
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.clear();
-			province.setVisible(false);
-			region.setVisible(true);
-		} else {
-
-			System.out.println("voidddddd---- " + "useArea");
-
-			clusterNo.clear();
-			clusterNo.setVisible(false);
-			district.clear();
-			district.setVisible(false);
-			districtMulti.clear();
-			districtMulti.setVisible(false);
-			province.clear();
-			province.setVisible(false);
-			region.clear();
-			region.setVisible(false);
+	
+	private void populateClusterOptions(DistrictReferenceDto districtDto) {
+		if (districtDto == null) {
+			return;
 		}
 
+		clusterNo.setVisible(true);
+		this.setColspan(clusterNo, 2);
+		communities = FacadeProvider.getCommunityFacade().getAllActiveByDistrict(districtDto.getUuid());
+		clusterNo.setLabel(I18nProperties.getCaption(Captions.clusterNumber));
+
+		List<CommunityReferenceDto> items = FacadeProvider.getCommunityFacade()
+				.getAllActiveByDistrict(districtDto.getUuid());
+		for (CommunityReferenceDto item : items) {
+			if (item.getNumber() == null) {
+				Notification notification = new Notification();
+				notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+				notification.setPosition(Position.MIDDLE);
+				Button closeButton = new Button(new Icon("lumo", "cross"));
+				closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+				closeButton.getElement().setAttribute("aria-label", "Close");
+				closeButton.addClickListener(event -> notification.close());
+
+				Paragraph text = new Paragraph("Cluster Number cannot be empty, please contact support");
+				HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+				layout.setAlignItems(Alignment.CENTER);
+				notification.add(layout);
+				notification.open();
+			}
+
+			item.setCaption(item.getNumber() != null ? item.getNumber().toString() : null);
+		}
+		Collections.sort(items, CommunityReferenceDto.clusternumber);
+
+		clusterNo.setItems(items);
+		clusterNo.getChildren().forEach(checkbox -> {
+			checkbox.getElement().getClassList().add("custom-checkbox-class");
+		});
 	}
+	
+	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+
+	    /* ---------- 1. Closed / empty state: reset everything ---------- */
+	    if (userRoles == null || userRoles.isEmpty()) {
+	        // Hide all geographic widgets
+	        clusterNo.clear();      clusterNo.setVisible(false);
+	        district.clear();       district.setVisible(false);
+	        districtMulti.clear();  districtMulti.setVisible(false);
+	        province.clear();       province.setVisible(false);
+	        region.clear();         region.setVisible(false);
+
+	        // Release any scope locks so the next edit starts clean
+	        region.setReadOnly(false);
+	        province.setReadOnly(false);
+	        district.setReadOnly(false);
+	        districtMulti.setReadOnly(false);
+	        clusterNo.setReadOnly(false);
+	        return;
+	    }
+
+	    /* ---------- 2. Re-apply the editor's geographic scope ---------- */
+	    // The editor's role set can be null during early form construction
+	    // (UserView.closeEditor() -> setUser(new UserDto())), so guard it.
+	    UserDto editor = userProvider != null ? userProvider.getUser() : null;
+	    Set<UserRole> editorRoles = editor != null ? editor.getUserRoles() : null;
+
+	    if (editorRoles != null && !editorRoles.isEmpty()) {
+	        applyGeographicScope(UserRole.getJurisdictionLevel(editorRoles));
+	    } else {
+	        // No editor scope available -> make sure nothing stays locked
+	        region.setReadOnly(false);
+	        province.setReadOnly(false);
+	        district.setReadOnly(false);
+	        districtMulti.setReadOnly(false);
+	        clusterNo.setReadOnly(false);
+	    }
+
+	    /* ---------- 3. Original visibility logic ---------- */
+	    final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+
+	    boolean showRegion = false;
+	    boolean showProvince = false;
+	    boolean showDistrict = false;
+	    boolean showDistrictMulti = false;
+	    boolean showCluster = false;
+
+	    switch (jurisdictionLevel) {
+	        case COMMUNITY:
+	            showRegion = true; showProvince = true;
+	            showDistrict = true; showCluster = true;
+	            break;
+	        case DISTRICT:
+	            showRegion = true; showProvince = true;
+	            if (userRoles.contains(UserRole.SURVEILLANCE_OFFICER)) {
+	                showDistrictMulti = true;
+	            } else {
+	                showDistrict = true;
+	            }
+	            break;
+	        case REGION:
+	            showRegion = true; showProvince = true;
+	            break;
+	        case AREA:
+	        case NATION:
+	            showRegion = true;
+	            break;
+	        default:
+	            break;
+	    }
+
+	    region.setVisible(showRegion);           if (!showRegion)        region.clear();
+	    province.setVisible(showProvince);       if (!showProvince)      province.clear();
+	    district.setVisible(showDistrict);       if (!showDistrict)      district.clear();
+	    districtMulti.setVisible(showDistrictMulti); if (!showDistrictMulti) districtMulti.clear();
+	    clusterNo.setVisible(showCluster);       if (!showCluster)       clusterNo.clear();
+
+	    if (province.getValue() != null) {
+	        List<DistrictReferenceDto> districtOptions = FacadeProvider.getDistrictFacade()
+	                .getAllActiveByRegion(province.getValue().getUuid());
+	        if (showDistrict)      district.setItems(districtOptions);
+	        if (showDistrictMulti) districtMulti.setItems(districtOptions);
+	    }
+
+	    if (showCluster && district.getValue() != null) {
+	        populateClusterOptions(district.getValue());
+	    }
+	}
+	
+
+//	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+//	    final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+//	    applyGeographicScope(jurisdictionLevel);
+//
+//	    
+//	    
+//	    if (userRoles == null || userRoles.isEmpty()) {
+//	        // Hide and clear everything if no roles are selected
+//	        clusterNo.clear(); clusterNo.setVisible(false);
+//	        district.clear(); district.setVisible(false);
+//	        districtMulti.clear(); districtMulti.setVisible(false);
+//	        province.clear(); province.setVisible(false);
+//	        region.clear(); region.setVisible(false);
+//	        return;
+//	    }
+//
+//
+//	    // 1. Determine visibility based on the role's jurisdiction level
+//	    boolean showRegion = false;
+//	    boolean showProvince = false;
+//	    boolean showDistrict = false;
+//	    boolean showDistrictMulti = false;
+//	    boolean showCluster = false;
+//
+//	    switch (jurisdictionLevel) {
+//	    case COMMUNITY:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        showDistrict = true;
+//	        showCluster = true;
+//	        break;
+//	    case DISTRICT:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        if (userRoles.contains(UserRole.SURVEILLANCE_OFFICER)) {
+//	            showDistrictMulti = true;
+//	        } else {
+//	            showDistrict = true;
+//	        }
+//	        break;
+//	    case REGION:
+//	        showRegion = true;
+//	        showProvince = true;
+//	        break;
+//	    case AREA:
+//	    case NATION:
+//	        showRegion = true;
+//	        break;
+//	    default:
+//	        // NONE, HEALTH_FACILITY, LABORATORY, POINT_OF_ENTRY, ... -> no geographic assignment
+//	        break;
+//	    }
+//
+//	    // 2. Apply visibility and clear hidden fields to prevent saving hidden data
+//	    region.setVisible(showRegion);
+//	    if (!showRegion) region.clear();
+//
+//	    province.setVisible(showProvince);
+//	    if (!showProvince) province.clear();
+//
+//	    district.setVisible(showDistrict);
+//	    if (!showDistrict) district.clear();
+//
+//	    districtMulti.setVisible(showDistrictMulti);
+//	    if (!showDistrictMulti) districtMulti.clear();
+//
+//	    clusterNo.setVisible(showCluster);
+//	    if (!showCluster) clusterNo.clear();
+//
+//	    // 3. Re-populate dropdowns if a Province is already selected but the role changed
+//	    if (province.getValue() != null) {
+//	        List<DistrictReferenceDto> districtOptions = FacadeProvider.getDistrictFacade()
+//	                .getAllActiveByRegion(province.getValue().getUuid());
+//	        if (showDistrict) {
+//	            district.setItems(districtOptions);
+//	        }
+//	        if (showDistrictMulti) {
+//	            districtMulti.setItems(districtOptions);
+//	        }
+//	    }
+//
+//	    // 4. Re-populate cluster options if a district is already selected but the role changed
+//	    if (showCluster && district.getValue() != null) {
+//	        populateClusterOptions(district.getValue());
+//	    }
+//	}
+	
+//	protected void updateFieldsByUserRole(Set<UserRole> userRoles) {
+//		final JurisdictionLevel jurisdictionLevel = UserRole.getJurisdictionLevel(userRoles);
+//		final boolean useCommunity = jurisdictionLevel == JurisdictionLevel.COMMUNITY;
+//		final boolean useDistrictOnly = jurisdictionLevel == JurisdictionLevel.DISTRICT
+//				&& userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
+//		final boolean useDistrict = jurisdictionLevel == JurisdictionLevel.DISTRICT
+//				&& !userRoles.contains(UserRole.SURVEILLANCE_OFFICER);
+//		final boolean useRegion = jurisdictionLevel == JurisdictionLevel.REGION || useDistrict;
+//		final boolean useArea = jurisdictionLevel == JurisdictionLevel.AREA || useRegion;
+//
+//		if (useCommunity) {
+//			clusterNo.setVisible(true);
+//			district.setVisible(true);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useDistrictOnly) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.setVisible(false);
+//			districtMulti.setVisible(true);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useDistrict) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useRegion) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.setVisible(true);
+//			region.setVisible(true);
+//		} else if (useArea) {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.clear();
+//			province.setVisible(false);
+//			region.setVisible(true);
+//		} else {
+//			clusterNo.clear();
+//			clusterNo.setVisible(false);
+//			district.clear();
+//			district.setVisible(false);
+//			districtMulti.clear();
+//			districtMulti.setVisible(false);
+//			province.clear();
+//			province.setVisible(false);
+//			region.clear();
+//			region.setVisible(false);
+//		}
+//	}
 
 	public static void updateItems(CheckboxGroup select, Set<?> items) {
 		Set<?> value = select.getSelectedItems();
@@ -1610,14 +1453,7 @@ public class UserForm extends FormLayout {
 	}
 
 	public static Set<UserRole> getAssignableRoles(Set<UserRole> assignedUserRoles) {
-
 		final Set<UserRole> assignedRoles = assignedUserRoles == null ? Collections.emptySet() : assignedUserRoles;
-
-		try {
-			System.out.println(currentUser.getUser().getUserRoles() + "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 		Set<UserRole> allRoles = UserRole.getAssignableRoles(UserProvider.getCurrent().getUserRoles());
 
@@ -1631,5 +1467,216 @@ public class UserForm extends FormLayout {
 
 		return allRoles;
 	}
+	
+	/**
+	 * Reusable utility to enforce downward hierarchical control on User Roles.
+	 */
+	public static Set<UserRole> getHierarchicalManageableRoles(Set<UserRole> loggedInUserRoles,
+			Set<UserRole> targetUserRoles, Set<UserRole> availableRoles) {
+		Set<UserRole> assignableRoles = new HashSet<>(availableRoles);
+
+		if (loggedInUserRoles == null || loggedInUserRoles.isEmpty()) {
+			return assignableRoles;
+		}
+
+		// Bypass hierarchy restrictions if the user is a system Admin
+		if (loggedInUserRoles.contains(UserRole.ADMIN)) {
+			assignableRoles.add(UserRole.ADMIN);
+			return assignableRoles;
+		}
+
+		// Calculate the highest jurisdiction rank among the logged-in user's roles
+		int maxRank = -1;
+		for (UserRole role : loggedInUserRoles) {
+			int rank = getRoleRank(role);
+			if (rank > maxRank) {
+				maxRank = rank;
+			}
+		}
+
+		final int userRank = maxRank;
+
+		assignableRoles.removeIf(targetRole -> {
+			// ALWAYS preserve the edited user's existing roles so Vaadin binding doesn't
+			// crash the form
+			if (targetUserRoles != null && targetUserRoles.contains(targetRole)) {
+				return false;
+			}
+
+			if (targetRole == UserRole.ADMIN) {
+				return true; // Non-Admins cannot assign the Admin role
+			}
+			
+			if (targetRole == UserRole.PUBLISH_USER || targetRole == UserRole.EDITOR_USER) {
+	            return true;
+	        }
+
+			int targetRank = getRoleRank(targetRole);
+
+			// Retain only if the target role's rank is strictly lower (<) than the logged
+			// in user's rank
+			return targetRank >= userRank;
+		});
+
+		return assignableRoles;
+	}
+	
+	/**
+	 * Maps Roles to a comparable integer rank using explicit UserRole Enum
+	 * matching.
+	 */
+	private static int getRoleRank(UserRole role) {
+		if (role == null)
+			return 0;
+
+		switch (role) {
+		case ADMIN:
+			return 60;
+
+		// --- NATIONAL LEVEL (50) ---
+		case COMMUNITY_INFORMANT: // Repurposed as National Data Manager
+		case NATIONAL_USER:
+		case NATIONAL_OBSERVER:
+		case NATIONAL_CLINICIAN:
+		case POE_NATIONAL_USER:
+			return 50;
+
+		// --- REGIONAL LEVEL (40) ---
+		case AREA_ADMIN_SUPERVISOR: // Repurposed as Regional Data Manager
+		case AREA_SURVEILLANCE_SUPERVISOR: // Repurposed as Regional Officer
+		case AREA_STATE_OBSERVER: // Repurposed as Regional Observer
+			return 40;
+
+		// --- PROVINCIAL LEVEL (30) ---
+		case ADMIN_SUPERVISOR: // Repurposed as Provincial Data Clerk
+		case SURVEILLANCE_SUPERVISOR: // Repurposed as Provincial Officer
+		case STATE_OBSERVER: // Repurposed as Provincial Observer
+		case CASE_SUPERVISOR:
+		case CONTACT_SUPERVISOR:
+		case EVENT_OFFICER:
+		case POE_SUPERVISOR:
+			return 30;
+
+		// --- DISTRICT LEVEL (20) ---
+		case SURVEILLANCE_OFFICER:
+		case DISTRICT_OBSERVER:
+		case CASE_OFFICER:
+		case CONTACT_OFFICER:
+			return 20;
+
+		// --- CLUSTER / COMMUNITY LEVEL (10) ---
+		case COMMUNITY_OFFICER: // Repurposed as Cluster FLW
+			return 10;
+
+		// --- BASELINE / OTHER (0) ---
+		case REST_USER:
+		case PUBLISH_USER:
+		case EDITOR_USER:
+		case BAG_USER:
+		case LAB_USER:
+		case EXTERNAL_LAB_USER:
+		case HOSPITAL_INFORMANT:
+		case POE_INFORMANT:
+			return 0;
+
+		default:
+			if (role.getJurisdictionLevel() != null) {
+				switch (role.getJurisdictionLevel()) {
+				case NATION:
+					return 50;
+				case AREA:
+					return 40;
+				case REGION:
+					return 30;
+				case DISTRICT:
+					return 20;
+				case COMMUNITY:
+					return 10;
+				default:
+					return 0;
+				}
+			}
+			return 0;
+		}
+	}
+	
+	
+	private void applyGeographicScope(JurisdictionLevel jurisdiction) {
+	    UserDto current = userProvider.getUser();
+	    
+	    region.setReadOnly(false);
+	    province.setReadOnly(false);
+	    district.setReadOnly(false);
+	    districtMulti.setReadOnly(false);
+	    clusterNo.setReadOnly(false);
+	    
+
+	    if (jurisdiction == JurisdictionLevel.AREA && current.getArea() != null) {
+	        region.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.REGION && current.getRegion() != null) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.DISTRICT
+	            && (current.getDistrict() != null || (current.getDistricts() != null && !current.getDistricts().isEmpty()))) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	        if (current.getDistrict() != null) {
+	            district.setReadOnly(true);
+	            if (district.getValue() == null) {
+	                district.setValue(current.getDistrict());
+	            }
+	            // Pre-select the creator's district for multi-district (surveillance officer) users as well
+	            @SuppressWarnings("unchecked")
+	            Set<DistrictReferenceDto> selectedMulti = (Set<DistrictReferenceDto>) districtMulti.getValue();
+	            if (selectedMulti == null || selectedMulti.isEmpty()) {
+	                districtMulti.setValue(Collections.singleton(current.getDistrict()));
+	            }
+	        } else {
+	            districtMulti.setReadOnly(true);
+	            @SuppressWarnings("unchecked")
+	            Set<DistrictReferenceDto> selectedMulti = (Set<DistrictReferenceDto>) districtMulti.getValue();
+	            if (selectedMulti == null || selectedMulti.isEmpty()) {
+	                districtMulti.setValue(current.getDistricts());
+	            }
+	        }
+	    } else if (jurisdiction == JurisdictionLevel.COMMUNITY && current.getCommunity() != null
+	            && !current.getCommunity().isEmpty()) {
+	        region.setReadOnly(true);
+	        province.setReadOnly(true);
+	        district.setReadOnly(true);
+	        clusterNo.setReadOnly(true);
+	        if (region.getValue() == null) {
+	            region.setValue(current.getArea());
+	        }
+	        if (province.getValue() == null) {
+	            province.setValue(current.getRegion());
+	        }
+	        if (district.getValue() == null) {
+	            district.setValue(current.getDistrict());
+	        }
+	        @SuppressWarnings("unchecked")
+	        Set<CommunityReferenceDto> selectedClusters = (Set<CommunityReferenceDto>) clusterNo.getValue();
+	        if (selectedClusters == null || selectedClusters.isEmpty()) {
+	            clusterNo.setValue(current.getCommunity());
+	        }
+	    }
+	    // NATION and other levels: no restriction
+	}
+	
 
 }

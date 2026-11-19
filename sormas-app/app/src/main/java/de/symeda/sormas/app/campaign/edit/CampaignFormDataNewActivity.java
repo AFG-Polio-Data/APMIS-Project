@@ -167,6 +167,7 @@ public class CampaignFormDataNewActivity extends BaseEditActivity<CampaignFormDa
             criteria.setCommunity(campaignFormDataToSave.getCommunity());
         }
         campaignFormDataToSave.setFormCategory(campaignFormDataToSave.getCampaignFormMeta().getFormCategory());
+        campaignFormDataToSave.setIsvalidated(false);
 
         CampaignFormDataNewFragment fragment = (CampaignFormDataNewFragment) getActiveFragment();
 
